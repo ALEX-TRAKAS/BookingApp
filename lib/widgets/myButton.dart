@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:bookingapp/utils/AppStyles.dart';
 
 class MyButton extends StatelessWidget {
   final Function()? onTap;
@@ -17,7 +18,7 @@ class MyButton extends StatelessWidget {
         padding: const EdgeInsets.all(22),
         margin: const EdgeInsets.symmetric(horizontal: 25),
         decoration: BoxDecoration(
-          color: Colors.black,
+          color: primary,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Center(

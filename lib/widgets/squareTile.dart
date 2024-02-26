@@ -10,24 +10,28 @@ class SquareTile extends StatelessWidget {
     super.key,
     required this.imagePath,
     required this.height,
-    required this.onTap, 
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.white),
-          borderRadius: BorderRadius.circular(20),
-          color: Colors.grey[300],
-        ),
-        child: SvgPicture.asset(
-          imagePath,
-          height: height,
-        ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.white),
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.grey[300],
+            ),
+            child: SvgPicture.asset(
+              imagePath,
+              height: height,
+            ),
+          ),
+        ],
       ),
     );
   }

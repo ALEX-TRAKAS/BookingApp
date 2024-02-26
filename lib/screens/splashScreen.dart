@@ -1,26 +1,36 @@
 import 'dart:async';
-import 'package:bookingapp/routes/app_routes.dart';
-import 'package:get/get.dart';
+import 'package:bookingapp/routes/name_route.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
-
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+class splashScreen extends StatefulWidget {
+  const splashScreen({super.key});
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  State<splashScreen> createState() => _SplashScreenState();
 }
-class _SplashScreenState extends State<SplashScreen> {
+
+class _SplashScreenState extends State<splashScreen> {
   @override
   void initState() {
     super.initState();
-     Timer(const Duration(seconds: 3), 
-     ()=> Get.toNamed(AppRoutes.auth),
-     );
+    if (mounted) {
+      setState(() {
+        Timer(
+          const Duration(seconds: 3),
+          () => context.goNamed(authNameRoute),
+        );
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
+    return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
         child: Container(
@@ -28,13 +38,12 @@ class _SplashScreenState extends State<SplashScreen> {
           height: 300,
           width: 300,
           decoration: BoxDecoration(
-            
             borderRadius: BorderRadius.circular(100),
             color: Colors.white,
             image: const DecorationImage(
               image: AssetImage('assets/images/splashlogo.png'),
-               fit: BoxFit.fill,
-              ),
+              fit: BoxFit.fill,
+            ),
           ),
         ),
       ),

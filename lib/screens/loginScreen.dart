@@ -1,27 +1,35 @@
+import 'package:bookingapp/routes/name_route.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:bookingapp/services/auth_service.dart';
 import 'package:bookingapp/widgets/squareTile.dart';
 import 'package:bookingapp/widgets/myButton.dart';
 import 'package:bookingapp/widgets/myTextfield.dart';
-import 'package:get/get.dart';
-import 'package:bookingapp/routes/app_routes.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+import '../utils/AppStyles.dart';
 
-class login_screen extends StatefulWidget {
+class loginScreen extends StatefulWidget {
   //final Function()? onTap;
-  const login_screen({super.key});
+  const loginScreen({super.key});
 
   @override
-  State<login_screen> createState() => _login_screenState();
+  State<loginScreen> createState() => _login_screenState();
 }
 
-class _login_screenState extends State<login_screen> {
-    final emailController = TextEditingController();
+class _login_screenState extends State<loginScreen> {
+  final emailController = TextEditingController();
 
   final passwordController = TextEditingController();
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   void signUserIn() async {
     // show loading circle
+
     showDialog(
         context: context,
         builder: (context) {
@@ -29,26 +37,51 @@ class _login_screenState extends State<login_screen> {
             child: CircularProgressIndicator(),
           );
         });
-
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final UserCredential authResult =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text,
         password: passwordController.text,
       );
       //pop the loading circle
-        Get.toNamed(AppRoutes.homeScreen);
-    } on FirebaseAuthException catch (e) {
-      //pop the loading circle
-      //Navigator.pop(context);
+      // Get the signed-in user
+      final User? user = authResult.user;
 
-      genericErrorMessage(e.code);
+      if (user != null) {
+        context.goNamed(navigationHubNameRoute);
+      } else {
+        print('Email and Password Sign-In failed.');
+      }
+    } on FirebaseAuthException catch (e) {
+      Navigator.pop(context);
+      // Handle FirebaseAuthException
+      print('FirebaseAuthException: ${e.message}');
+
+      // You can customize the error handling based on the exception type
+      if (e.code == 'user-not-found') {
+        print('User not found. Please check your email.');
+      } else if (e.code == 'wrong-password') {
+        print('Wrong password. Please try again.');
+      } else {
+        // Handle other cases as needed
+        print('An error occurred while signing in: ${e.message}');
+      }
+    } on PlatformException catch (e) {
+      // Handle PlatformException
+      print('PlatformException: ${e.message}');
+
+      // You can customize the error handling based on the platform exception
+      // Common cases include network issues, device offline, etc.
+    } catch (e) {
+      // Handle other exceptions (not FirebaseAuthException)
+      print('An unexpected error occurred: $e');
     }
   }
 
   void genericErrorMessage(String message) {
     showDialog(
       context: context,
-      builder: (context) {  
+      builder: (context) {
         return AlertDialog(
           title: Text(message),
           actions: [
@@ -63,8 +96,9 @@ class _login_screenState extends State<login_screen> {
       },
     );
   }
+
   @override
-    Widget build(BuildContext context) {
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 243, 243, 243),
       resizeToAvoidBottomInset: true,
@@ -76,15 +110,13 @@ class _login_screenState extends State<login_screen> {
               children: [
                 const SizedBox(height: 50),
                 //logo
-                const Icon(
-                  Icons.lock_person,
-                  size: 150,
-                ),
+                const Icon(Icons.lock_person,
+                    size: 150, color: Color(0xFF0F9B0F)),
                 const SizedBox(height: 10),
                 //welcome back you been missed
 
                 Text(
-                  'Welcome back you\'ve been missed',
+                  'Εισαγάγετε τα διαπιστευτήριά σας για να συνεχίσετε.',
                   style: TextStyle(
                     color: Colors.grey[700],
                     fontSize: 15,
@@ -95,7 +127,7 @@ class _login_screenState extends State<login_screen> {
                 //username
                 MyTextField(
                   controller: emailController,
-                  hintText: 'Username or email',
+                  hintText: 'Ηλεκτρονικό  Ταχυδρομείο',
                   obscureText: false,
                 ),
 
@@ -103,7 +135,7 @@ class _login_screenState extends State<login_screen> {
                 //password
                 MyTextField(
                   controller: passwordController,
-                  hintText: 'Password',
+                  hintText: 'Κωδικός',
                   obscureText: true,
                 ),
                 const SizedBox(height: 15),
@@ -111,7 +143,7 @@ class _login_screenState extends State<login_screen> {
                 //sign in button
                 MyButton(
                   onTap: signUserIn,
-                  text: 'Sign In',
+                  text: 'Σύνδεση',
                 ),
                 const SizedBox(height: 20),
 
@@ -119,18 +151,18 @@ class _login_screenState extends State<login_screen> {
 
                 Padding(
                   padding: const EdgeInsets.all(5.0),
-                  child: Row(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Forgot your login details? ',
+                        'Ξεχάσατε τον κωδικό πρόσβασής σας? ',
                         style: TextStyle(
                             color: Colors.grey.shade600, fontSize: 12),
                       ),
                       Text(
-                        'Get help logging in.',
+                        'Επαναφορά κωδικού πρόσβασης.',
                         style: TextStyle(
-                          color: Colors.blue.shade900,
+                          color: primary,
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
@@ -157,8 +189,8 @@ class _login_screenState extends State<login_screen> {
                       Padding(
                         padding: const EdgeInsets.only(left: 8, right: 8),
                         child: Text(
-                          'OR',
-                          style: TextStyle(color: Colors.grey.shade600),
+                          'ή σύνδεση μέσω',
+                          style: TextStyle(color: Styles.textColor),
                         ),
                       ),
                       Expanded(
@@ -179,7 +211,7 @@ class _login_screenState extends State<login_screen> {
                   children: [
                     //google button
                     SquareTile(
-                      onTap:() => Authentication.signInWithGoogle(),
+                      onTap: () => Authentication.signInWithGoogle(context),
                       imagePath: 'assets/images/google.svg',
                       height: 70,
                     ),
@@ -195,15 +227,15 @@ class _login_screenState extends State<login_screen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Not a member? ',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      'Δεν έχεις λογαρμιασμό;',
+                      style: TextStyle(color: Styles.textColor, fontSize: 12),
                     ),
                     GestureDetector(
-                      onTap: () => Get.toNamed(AppRoutes.registerScreen),
+                      onTap: () => context.goNamed(signupNameRoute),
                       child: Text(
-                        'Register now',
+                        'Εγγραφή τώρα',
                         style: TextStyle(
-                            color: Colors.blue[900],
+                            color: primary,
                             fontWeight: FontWeight.bold,
                             fontSize: 15),
                       ),

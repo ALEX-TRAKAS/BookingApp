@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:bookingapp/utils/AppStyles.dart';
 
 class MyTextField extends StatelessWidget {
   final controller;
@@ -23,16 +24,16 @@ class MyTextField extends StatelessWidget {
           decoration: InputDecoration(
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Colors.grey.shade400),
+              borderSide: BorderSide(color: Colors.black),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20.0),
-              borderSide: BorderSide(color: Colors.grey.shade600),
+              borderSide: BorderSide(color: Colors.black),
             ),
             filled: true,
             fillColor: Colors.grey.shade300,
             hintText: hintText,
-            hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 15),
+            hintStyle: TextStyle(color: Styles.textColor, fontSize: 15),
           ),
         ),
       ),

@@ -1,24 +1,40 @@
-import 'package:bookingapp/routes/app_routes.dart';
+import 'package:bookingapp/routes/name_route.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:bookingapp/widgets/squareTile.dart';
 import 'package:bookingapp/widgets/myButton.dart';
 import 'package:bookingapp/widgets/myTextfield.dart';
 import 'package:bookingapp/services/auth_service.dart';
-import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
+import 'package:bookingapp/utils/AppStyles.dart';
 
-class  register_screen extends StatefulWidget {
+class registerScreen extends StatefulWidget {
   //final Function()? onTap;
-  const register_screen({super.key});
+  const registerScreen({super.key});
 
   @override
-  State<register_screen> createState() => _register_screenState();
+  State<registerScreen> createState() => _register_screenState();
 }
 
-class _register_screenState extends State<register_screen> {
+class _register_screenState extends State<registerScreen> {
+  final firstNameController = TextEditingController();
+  final lastNameController = TextEditingController();
+  final phoneController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+
+  @override
+  void dispose() {
+    firstNameController.dispose();
+    lastNameController.dispose();
+    phoneController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   void signUserUp() async {
     // show loading circle
@@ -33,17 +49,39 @@ class _register_screenState extends State<register_screen> {
     try {
       // check if both password and confirm pasword is same
       if (passwordController.text == confirmPasswordController.text) {
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        UserCredential userCredential =
+            await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: emailController.text,
           password: passwordController.text,
         );
+        final User? user = userCredential.user;
+        // Check if the user already exists in Firestore
+        final userSnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user!.uid)
+            .get();
+        if (!userSnapshot.exists) {
+          // Create a new user document in Firestore
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .set({
+            'displayName': user.displayName,
+            'firstName': firstNameController.text,
+            'lastName': lastNameController.text,
+            'phone': phoneController.text,
+            'email': user.email,
+            'photoURL': user.photoURL,
+            // Add any other user-related information you want to store
+          });
+        }
       } else {
         //show error password dont match
-        genericErrorMessage("Password don't match!");
+        genericErrorMessage("Οι κωδικοι δεν ταιριαζοθν!");
       }
 
       //pop the loading circle
-      Get.toNamed(AppRoutes.loginScreen);
+      context.goNamed(loginNameRoute);
     } on FirebaseAuthException catch (e) {
       //pop the loading circle
       Navigator.pop(context);
@@ -75,51 +113,75 @@ class _register_screenState extends State<register_screen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 243, 243, 243),
-      resizeToAvoidBottomInset: true,
+      // resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Center(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              // mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 50),
+                const SizedBox(height: 10),
                 //logo
                 const Icon(
                   Icons.lock,
                   size: 100,
+                  color: Color(0xFF0F9B0F),
                 ),
                 const SizedBox(height: 10),
                 //welcome back you been missed
-
+                Text(
+                  'Δημιουργία Λογαριασμού!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: primary,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700),
+                ),
                 const SizedBox(height: 25),
-
+                MyTextField(
+                  controller: firstNameController,
+                  hintText: 'Όνομα',
+                  obscureText: false,
+                ),
+                const SizedBox(height: 15),
+                MyTextField(
+                  controller: lastNameController,
+                  hintText: 'Επίθετο',
+                  obscureText: false,
+                ),
+                const SizedBox(height: 15),
+                MyTextField(
+                  controller: phoneController,
+                  hintText: 'Αριθμός Τηλεφώνου',
+                  obscureText: false,
+                ),
+                const SizedBox(height: 15),
                 //username
                 MyTextField(
                   controller: emailController,
-                  hintText: 'Username or email',
+                  hintText: 'Ηλεκτρονικό Ταχυδρομείο',
                   obscureText: false,
                 ),
-
                 const SizedBox(height: 15),
                 //password
                 MyTextField(
                   controller: passwordController,
-                  hintText: 'Password',
+                  hintText: 'Κωδικός',
                   obscureText: true,
                 ),
                 const SizedBox(height: 15),
 
                 MyTextField(
                   controller: confirmPasswordController,
-                  hintText: 'Confirm Password',
+                  hintText: 'Επιβεβαίωση Κωδικού',
                   obscureText: true,
                 ),
-                const SizedBox(height: 15),
+                const SizedBox(height: 10),
 
                 //sign in button
                 MyButton(
                   onTap: signUserUp,
-                  text: 'Sign Up',
+                  text: 'Εγγραφή',
                 ),
                 const SizedBox(height: 20),
 
@@ -137,8 +199,8 @@ class _register_screenState extends State<register_screen> {
                       Padding(
                         padding: const EdgeInsets.only(left: 8, right: 8),
                         child: Text(
-                          'OR',
-                          style: TextStyle(color: Colors.grey.shade600),
+                          'ή σύνδεση μέσω',
+                          style: TextStyle(color: Styles.textColor),
                         ),
                       ),
                       Expanded(
@@ -150,40 +212,38 @@ class _register_screenState extends State<register_screen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 60),
+                const SizedBox(height: 20),
 
                 //google button
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    //google buttom
+                    //google button
                     SquareTile(
-                      onTap: () => Authentication.signInWithGoogle(),
+                      onTap: () => Authentication.signInWithGoogle(context),
                       imagePath: 'assets/images/google.svg',
                       height: 70,
                     ),
                   ],
                 ),
                 const SizedBox(
-                  height: 100,
+                  height: 10,
                 ),
-
                 // not a memeber ? register now
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Already have an account? ',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      'Έχεις ήδη λογαρμιασμό;',
+                      style: TextStyle(color: Styles.textColor, fontSize: 12),
                     ),
                     GestureDetector(
-                      onTap: ()=> Get.toNamed(AppRoutes.loginScreen),
+                      onTap: () => context.goNamed(loginNameRoute),
                       child: Text(
-                        'Login now',
+                        'Σύνδεση',
                         style: TextStyle(
-                            color: Colors.blue[900],
+                            color: primary,
                             fontWeight: FontWeight.bold,
                             fontSize: 14),
                       ),
