@@ -38,9 +38,9 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) {
       super.initState();
     }
-    // if (lastSavedLocation == null) {
-    //   _getCurrentLocation();
-    // }
+    if (lastSavedLocation == null) {
+      _getCurrentLocation();
+    }
     // showLocation();
   }
 
@@ -66,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
         position.latitude,
         position.longitude,
       );
-
+      print('geo data get method: $placemarks');
       // Limiting to the first result if available
       if (placemarks.isNotEmpty) {
         Placemark firstPlacemark = placemarks.first;
@@ -161,6 +161,20 @@ class _HomeScreenState extends State<HomeScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              IconButton(
+                                icon: Icon(
+                                    Icons.location_on), // Change location icon
+                                onPressed: () async {
+                                  final selectedLocation = await context
+                                      .pushNamed(locationSearchScreenNameRoute);
+                                  if (selectedLocation != null) {
+                                    print(
+                                        'Selected location name: ${selectedLocation}');
+                                  }
+                                },
+
+                                // Do something with selectedLocation if needed
+                              ),
                               Text(
                                 'Κάνε κράτηση',
                                 style: Styles.headLineStyle1,

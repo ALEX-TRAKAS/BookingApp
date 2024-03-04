@@ -359,7 +359,6 @@ class databaseFunctions {
 
         final bool isFavorite = userFavorites.containsKey(restaurantId) &&
             userFavorites[restaurantId]?['isFavorite'] == true;
-
         return isFavorite;
       }
 

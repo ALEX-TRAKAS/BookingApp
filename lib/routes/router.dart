@@ -1,3 +1,4 @@
+import 'package:bookingapp/screens/LocationSearchScreen.dart';
 import 'package:bookingapp/screens/detailedRestaurantScreen.dart';
 import 'package:bookingapp/screens/ReservationsScreen.dart';
 import 'package:bookingapp/screens/SearchScreen.dart';
@@ -95,6 +96,11 @@ abstract class AppRouter {
           builder: (context, state) => reservationScreen(
             restaurantId: state.uri.queryParameters['restaurantId'],
           ),
+        ),
+        GoRoute(
+          name: locationSearchScreenNameRoute,
+          path: locationSearchScreenRoute,
+          builder: (context, state) => LocationSearchScreen(),
         ),
       ],
       errorBuilder: (context, state) => ErrorScreen(exception: state.error),

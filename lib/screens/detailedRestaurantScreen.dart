@@ -1,5 +1,6 @@
 import 'package:bookingapp/routes/name_route.dart';
 import 'package:bookingapp/services/databaseFunctions.dart';
+import 'package:bookingapp/utils/AppStyles.dart';
 import 'package:bookingapp/widgets/circleButton.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,16 +20,20 @@ class DetailedRestaurantScreen extends StatefulWidget {
 
 class _DetailedRestaurantScreenState extends State<DetailedRestaurantScreen> {
   late Future<Map<String, dynamic>>? _restaurantData;
-  late Future<bool>? isFavorite;
+  late Future<bool> isFavorite;
   final db = databaseFunctions();
   final User? user = FirebaseAuth.instance.currentUser;
 
   @override
   void initState() {
-    super.initState();
     _restaurantData = _init();
+    _updateIsFavorite();
+    super.initState();
+  }
+
+  void _updateIsFavorite() async {
     isFavorite = db.isFavoriteRestaurant(user!.uid, widget.restaurantId!);
-    print(isFavorite);
+    setState(() {});
   }
 
   Future<Map<String, dynamic>> _init() async {
@@ -49,13 +54,17 @@ class _DetailedRestaurantScreenState extends State<DetailedRestaurantScreen> {
       final isFavorite = await db.isFavoriteRestaurant(user!.uid, restaurantId);
 
       if (isFavorite) {
+        print('remove favorite ${user!.uid}, $restaurantId');
         await db.removeFavoriteRestaurant(user!.uid, restaurantId);
-        isFavorite == false;
-        print(isFavorite);
       } else {
+        print('add favorite ${user!.uid}, $restaurantId');
         await db.addFavoriteRestaurant(user!.uid, restaurantId);
       }
 
+      // Update favorite status
+      _updateIsFavorite();
+
+      // Rebuild UI to reflect the changes
       setState(() {});
     } catch (e) {
       print('Error toggling favorite: $e');
@@ -69,21 +78,55 @@ class _DetailedRestaurantScreenState extends State<DetailedRestaurantScreen> {
     } else {
       return Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0.0, // Remove the shadow
-          leading: CircleIconButton(
-            icon: Icons.arrow_back,
-            onPressed: () {
-              GoRouter.of(context).pop();
-            },
-            iconColor: Colors.amber,
+          // backgroundColor: Colors.transparent,
+          // elevation: 0.0, // Remove the shadow
+          leading: Ink(
+            decoration: const ShapeDecoration(
+              color: Colors.grey,
+              shape: CircleBorder(),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              color: Styles.primaryColor,
+              onPressed: () {
+                GoRouter.of(context).pop();
+              },
+            ),
           ),
           actions: <Widget>[
-            CircleIconButton(
-              icon: Icons.bookmark,
-              iconColor: isFavorite == true ? Colors.red : Colors.blue,
-              onPressed: () {
-                _toggleFavorite(widget.restaurantId!);
+            FutureBuilder<bool>(
+              future: isFavorite,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  // Return a placeholder widget while waiting for the future to complete
+                  return Icon(
+                    Icons.bookmark,
+                    color: Colors.grey, // You can customize the error color
+                  );
+                } else if (snapshot.hasError) {
+                  // Return a widget to display the error if the future throws an error
+                  return Icon(
+                    Icons.error_outline,
+                    color: Colors.red, // You can customize the error color
+                  );
+                } else {
+                  // Return the bookmark icon with the appropriate color based on the future's result
+                  final bool isFav = snapshot.data ?? false;
+                  return Ink(
+                    decoration: const ShapeDecoration(
+                      color: Colors.grey,
+                      shape: CircleBorder(),
+                    ),
+                    child: IconButton(
+                      icon: Icon(Icons.bookmark),
+                      onPressed: () {
+                        _toggleFavorite(widget.restaurantId!);
+                        setState(() {});
+                      },
+                      color: isFav ? Styles.primaryColor : Colors.white,
+                    ),
+                  );
+                }
               },
             ),
           ],

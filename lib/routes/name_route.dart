@@ -12,6 +12,7 @@ const reservationsRoute = '/reservationsScreen';
 const homeRoute = '/homeScreen';
 const restaurantsDetailedScreenRoute = '/detailedRestaurantScreen';
 const reservationScreenRoute = '/reservationScreen';
+const locationSearchScreenRoute = '/locationSearchScreen';
 
 const defaultNameRoute = '/';
 const authNameRoute = 'authGate';
@@ -27,3 +28,4 @@ const reservationsNameRoute = 'reservations';
 const homeNameRoute = 'home';
 const restaurantsDetailedScreenNameRoute = 'detailedRestaurantScreen';
 const reservationScreenNameRoute = 'reservationScreen';
+const locationSearchScreenNameRoute = 'locationSearchScreen';
