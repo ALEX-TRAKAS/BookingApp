@@ -5,9 +5,9 @@
 .idea
 .metadata
 .vscode
-
 build
 assets
+constants.dart
 
 #ignore android except android/app/src/main/AndroidManifest.xml
 android/*

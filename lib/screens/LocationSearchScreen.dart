@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:bookingapp/utils/appstyles.dart';
+import 'package:bookingapp/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -13,6 +14,7 @@ class LocationSearchScreen extends StatefulWidget {
 class _LocationSearchScreenState extends State<LocationSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<dynamic> _searchResults = [];
+  bool _isLoading = false;
 
   void _searchLocation(String searchTerm) async {
     if (searchTerm.isEmpty) {
@@ -22,8 +24,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       return;
     }
 
-    const apiKey =
-        'AIzaSyATy0dmhFlGx-kopTHB6ePYIwJPuX5PD-E'; // Replace with your Google Places API key
     final url =
         'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$searchTerm&types=geocode&language=el&key=$apiKey';
 
@@ -42,8 +42,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   }
 
   void _getPlaceDetails(String placeId) async {
-    const apiKey =
-        'AIzaSyATy0dmhFlGx-kopTHB6ePYIwJPuX5PD-E'; // Replace with your Google Places API key
     final url =
         'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&fields=name,formatted_address,geometry&key=$apiKey';
 
@@ -58,7 +56,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       final String name = result['name'];
       final String formattedAddress = result['formatted_address'];
 
-      // Do something with lat and lng, such as storing them in variables or using them in further processing
       print(
           'Name: $name, Formatted Address: $formattedAddress, Latitude: $lat, Longitude: $lng');
 
@@ -74,39 +71,53 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       print('Error: ${response.reasonPhrase}');
     }
   }
-//to be done
-  //  Future<void> _getCurrentLocation() async {
-  //   try {
-  //     Position position = await Geolocator.getCurrentPosition(
-  //       desiredAccuracy: LocationAccuracy.high,
-  //     );
 
-  //     List<Placemark> placemarks = await placemarkFromCoordinates(
-  //       position.latitude,
-  //       position.longitude,
-  //     );
-  //     print('geo data get method: ${placemarks.first}');
-  //     // Limiting to the first result if available
-  //     if (placemarks.isNotEmpty) {
-  //       Placemark firstPlacemark = placemarks.first;
-  //       // Save the last known location
-  //       await _saveLastKnownLocation(
-  //           position.latitude,
-  //           position.longitude,
-  //           firstPlacemark.country,
-  //           firstPlacemark.locality,
-  //           firstPlacemark.street);
-  //     }
-  //   } catch (e) {
-  //     print('Error getting current location: $e');
-  //   }
-  // }
+  Future<void> _getCurrentLocation() async {
+    setState(() {
+      _isLoading = true; // Set loading state to true
+    });
+
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      // Check if the widget is still mounted before updating the state
+      if (mounted) {
+        // Limiting to the first result if available
+        if (placemarks.isNotEmpty) {
+          Placemark firstPlacemark = placemarks.first;
+          Navigator.pop(context, {
+            'name': firstPlacemark.name,
+            'formatted_address': firstPlacemark.locality,
+            'lat': position.latitude,
+            'lng': position.longitude,
+          });
+        }
+      }
+    } catch (e) {
+      print('Error getting current location: $e');
+    } finally {
+      // Check if the widget is still mounted before updating the state
+      if (mounted) {
+        setState(() {
+          _isLoading =
+              false; // Set loading state to false when location fetching is complete
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Επίλεξε περιοχή'),
+        title: const Text('Επίλεξε περιοχή'),
       ),
       body: Column(
         children: [
@@ -120,7 +131,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               child: TextField(
                 controller: _searchController,
                 decoration: const InputDecoration(
-                  hintText: 'Αναζήτηση τοποθεσίας...',
+                  hintText: 'Search locations...',
                   prefixIcon: Icon(Icons.search),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(25.0)),
@@ -139,47 +150,53 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               ),
             ),
             child: ListTile(
-              leading: Icon(
-                Icons.my_location,
-                color: Styles.primaryColor,
-              ),
-              title: Text('Εύρεση της τρέχουσας τοποθεσίας σας'),
+              leading: Icon(Icons.my_location, color: Styles.primaryColor),
+              title: const Text('Εύρεση της τρέχουσας τοποθεσίας σας'),
               onTap: () {
-                // Add your specific function here
+                _getCurrentLocation();
               },
             ),
           ),
-          Expanded(
-            child: _searchResults.isEmpty
-                ? Center(
-                    child: Text('No results found.'),
-                  )
-                : ListView.builder(
-                    itemCount: _searchResults.length,
-                    itemBuilder: (context, index) {
-                      final prediction = _searchResults[index];
-                      return Container(
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(color: Styles.primaryColor),
-                          ),
-                        ),
-                        child: ListTile(
-                          leading: Icon(
-                            Icons.location_on,
-                            color: Styles.primaryColor,
-                          ),
-                          title: Text(prediction['description']),
-                          onTap: () {
-                            _getPlaceDetails(prediction['place_id']);
+          _isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(), // Show loading indicator
+                )
+              : Expanded(
+                  child: _searchResults.isEmpty
+                      ? const Center(
+                          child: Text('No results found.'),
+                        )
+                      : ListView.builder(
+                          itemCount: _searchResults.length,
+                          itemBuilder: (context, index) {
+                            final prediction = _searchResults[index];
+                            return Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom:
+                                      BorderSide(color: Styles.primaryColor),
+                                ),
+                              ),
+                              child: ListTile(
+                                leading: Icon(Icons.location_on,
+                                    color: Styles.primaryColor),
+                                title: Text(prediction['description']),
+                                onTap: () {
+                                  _getPlaceDetails(prediction['place_id']);
+                                },
+                              ),
+                            );
                           },
                         ),
-                      );
-                    },
-                  ),
-          ),
+                ),
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 }
