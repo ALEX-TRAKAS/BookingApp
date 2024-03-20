@@ -9,10 +9,10 @@ class ReservationScreen extends StatefulWidget {
   final List<Map<String, dynamic>> initialRestaurants;
   final Function(List<Map<String, dynamic>>)? onSelectedRestaurants;
   const ReservationScreen({
-    Key? key,
+    super.key,
     required this.initialRestaurants,
     this.onSelectedRestaurants,
-  }) : super(key: key);
+  });
   @override
   _ReservationScreenState createState() => _ReservationScreenState();
 
@@ -29,7 +29,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
   int _selectedDateIndex = 0;
   int _selectedTimeIndex = 0;
   int _selectedGuestsIndex = 0;
-  final debouncer = Debouncer(delay: Duration(milliseconds: 200));
+  final debouncer = Debouncer(delay: const Duration(milliseconds: 200));
   final List<Map<String, dynamic>> _dateOptions = [];
   final List<Map<String, dynamic>> _dateOptionsEng = [];
   final List<String> _timeOptions = [
@@ -87,7 +87,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
   void initState() {
     super.initState();
     final startDate = DateTime.now();
-    final endDate = DateTime.now().add(Duration(days: 7));
+    final endDate = DateTime.now().add(const Duration(days: 7));
     final days = getDaysInBetween(startDate, endDate);
     for (var i = 0; i < days.length; i++) {
       _dateOptions.add({
@@ -141,12 +141,12 @@ class _ReservationScreenState extends State<ReservationScreen> {
         .get();
 
     // Iterate through the query results
-    querySnapshot.docs.forEach((doc) {
+    for (var doc in querySnapshot.docs) {
       // Access each restaurant document
       Map<String, dynamic> restaurantData = doc.data();
       // Process the restaurant data as needed
       print('Restaurant: ${restaurantData['name']}');
-    });
+    }
   }
 
   String extractDay(String dateString) {
@@ -187,9 +187,10 @@ class _ReservationScreenState extends State<ReservationScreen> {
     return days;
   }
 
+  @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(12.0),
           topRight: Radius.circular(12.0),
@@ -222,7 +223,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
               ),
             ],
           ),
-          Gap(20), // Add spacing between list views and buttons
+          const Gap(20), // Add spacing between list views and buttons
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -238,9 +239,9 @@ class _ReservationScreenState extends State<ReservationScreen> {
                     return Styles.primaryColor; // Text color
                   }),
                 ),
-                child: Text('Apply'),
+                child: const Text('Apply'),
               ),
-              SizedBox(width: 20),
+              const SizedBox(width: 20),
               ElevatedButton(
                 onPressed: _skipChanges,
                 style: ButtonStyle(
@@ -253,7 +254,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
                     return Styles.primaryColor; // Text color
                   }),
                 ),
-                child: Text('Skip'),
+                child: const Text('Skip'),
               )
             ],
           ),
@@ -269,7 +270,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
       double contHeight,
       double contWidth) {
     ScrollController scrollController = ScrollController();
-    return Container(
+    return SizedBox(
       height: contHeight, // Set the desired height here
       width: contWidth, // Set the width to fill the available space
       child: ListView.builder(
@@ -289,7 +290,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
                     (4 / 2);
                 // Scroll to the calculated offset with animation
                 scrollController.animateTo(offset,
-                    duration: Duration(milliseconds: 500),
+                    duration: const Duration(milliseconds: 500),
                     curve: Curves.easeInOut);
               });
             },
@@ -331,7 +332,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
   Widget buildOptionListDates(List<Map<String, dynamic>> options,
       int selectedIndex, void Function(int) onOptionSelected) {
     ScrollController scrollController = ScrollController();
-    return Container(
+    return SizedBox(
       height: 200, // Set the desired height here
       width: 150, // Set the width to fill the available space
       child: ListView.builder(
@@ -352,7 +353,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
                     (4 / 2);
                 // Scroll to the calculated offset with animation
                 scrollController.animateTo(offset,
-                    duration: Duration(milliseconds: 500),
+                    duration: const Duration(milliseconds: 500),
                     curve: Curves.easeInOut);
               });
             },

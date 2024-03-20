@@ -8,7 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:bookingapp/utils/AppStyles.dart';
 
 class navigationHub extends StatefulWidget {
-  navigationHub({Key? key}) : super(key: key);
+  const navigationHub({super.key});
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -17,13 +17,13 @@ class navigationHub extends StatefulWidget {
 class _MyHomePageState extends State<navigationHub> {
   final user = FirebaseAuth.instance.currentUser!;
   int _currentIndex = 0;
-  PageController _pageController = PageController();
+  final PageController _pageController = PageController();
   final List<Widget> _pages = [
-    HomeScreen(),
+    const HomeScreen(),
     SearchScreen(),
-    FavoritesScreen(),
+    const FavoritesScreen(),
     ReservationsScreen(),
-    profileScreen(),
+    const profileScreen(),
   ];
   @override
   void dispose() {
@@ -54,7 +54,8 @@ class _MyHomePageState extends State<navigationHub> {
           setState(() {
             _currentIndex = index;
             _pageController.animateToPage(index,
-                duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+                duration: const Duration(milliseconds: 10),
+                curve: Curves.easeInOut);
           });
         },
         items: const [

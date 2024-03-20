@@ -6,7 +6,7 @@ class ReservationDialog extends StatefulWidget {
   final void Function(List<Map<String, dynamic>> selectedRestaurants)?
       onSelectedRestaurants;
 
-  ReservationDialog({
+  const ReservationDialog({super.key, 
     required this.initialRestaurants,
     this.onSelectedRestaurants,
   });
@@ -24,7 +24,7 @@ class _ReservationDialogState extends State<ReservationDialog> {
       alignment: Alignment.bottomCenter,
       child: Expanded(
         child: Dialog(
-          insetPadding: EdgeInsets.symmetric(horizontal: 2.0, vertical: 2.0),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 2.0, vertical: 2.0),
           backgroundColor: Colors.transparent,
           child: Container(
             alignment: Alignment.bottomCenter,

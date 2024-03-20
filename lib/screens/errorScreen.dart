@@ -5,9 +5,9 @@ import 'package:go_router/go_router.dart';
 class ErrorScreen extends StatelessWidget {
   final Exception? exception;
   const ErrorScreen({
-    Key? key,
+    super.key,
     this.exception,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

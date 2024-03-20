@@ -4,7 +4,7 @@ import 'package:bookingapp/screens/loginScreen.dart';
 import 'package:bookingapp/screens/navigationHub.dart';
 
 class authGate extends StatelessWidget {
-  const authGate({Key? key}) : super(key: key);
+  const authGate({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class authGate extends StatelessWidget {
             return const loginScreen();
           }
           // Render your application if authenticated
-          return navigationHub();
+          return const navigationHub();
         });
   }
 }

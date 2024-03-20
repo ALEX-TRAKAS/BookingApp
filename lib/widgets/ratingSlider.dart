@@ -4,7 +4,7 @@ class RatingSlider extends StatefulWidget {
   final ValueChanged<double> onChanged;
   final double value;
 
-  RatingSlider({required this.onChanged, required this.value});
+  const RatingSlider({super.key, required this.onChanged, required this.value});
 
   @override
   _RatingSliderState createState() => _RatingSliderState();

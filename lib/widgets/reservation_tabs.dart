@@ -5,8 +5,7 @@ class AppTicketTabs extends StatelessWidget {
   final String firstTab;
   final String secondTab;
   const AppTicketTabs(
-      {Key? key, required this.firstTab, required this.secondTab})
-      : super(key: key);
+      {super.key, required this.firstTab, required this.secondTab});
 
   @override
   Widget build(BuildContext context) {

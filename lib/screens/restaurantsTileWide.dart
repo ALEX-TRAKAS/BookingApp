@@ -8,8 +8,7 @@ import '../utils/appstyles.dart';
 
 class restaurantsTileWide extends StatelessWidget {
   final Map<String, dynamic> restaurant;
-  const restaurantsTileWide({Key? key, required this.restaurant})
-      : super(key: key);
+  const restaurantsTileWide({super.key, required this.restaurant});
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +93,7 @@ class restaurantsTileWide extends StatelessWidget {
                   allowHalfRating: true,
                   itemCount: 5,
                   itemSize: 25.0,
-                  itemPadding: EdgeInsets.symmetric(horizontal: 1.0),
+                  itemPadding: const EdgeInsets.symmetric(horizontal: 1.0),
                   itemBuilder: (context, _) => const Icon(
                     Icons.star,
                     color: Color(0xFF0F9B0F),

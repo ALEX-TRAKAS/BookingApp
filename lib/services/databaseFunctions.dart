@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:get/get.dart';
 
 class databaseFunctions {
   static Future<Map<String, dynamic>?> getUserData(String userId) async {
@@ -28,15 +27,16 @@ class databaseFunctions {
     }
   }
 
-  static Future getFromFirebase() async {
-    // List<Map<String, dynamic>> restaurants = [];
-    final result =
-        await FirebaseFirestore.instance.collection("restaurants").get();
+  static Future getFromFirebase(String postalCode) async {
+    final result = await FirebaseFirestore.instance
+        .collection("restaurants")
+        .where('Location.postalCode', isEqualTo: postalCode)
+        .get();
 
     return result.docs
         .map((e) => {
               'id': e.id, // Include the document ID
-              ...e.data()!, // Include the document data
+              ...e.data(), // Include the document data
             })
         .toList();
   }
@@ -172,7 +172,7 @@ class databaseFunctions {
       'Location': {
         'address': '123 Pine Street',
         'city': 'Tastytown',
-        'coordinates': GeoPoint(40.8781, -84.6298),
+        'coordinates': const GeoPoint(40.8781, -84.6298),
         'country': 'Flavorland',
         'postalCode': '98765',
       },
@@ -432,42 +432,4 @@ class databaseFunctions {
       return [];
     }
   }
-
-  // Future<List<String>>? getAllFavoriteRestaurantsData(
-  //     Future<List<String>>? favRestIdList) async {
-  //   try {
-  //     List<String> allFavoriteRestaurantData = [];
-
-  //     if (favRestIdList != null) {
-  //       List<String> restaurantIds = await favRestIdList;
-
-  //       for (String restaurantId in restaurantIds) {
-  //         final DocumentSnapshot restaurantDoc = await FirebaseFirestore
-  //             .instance
-  //             .collection('restaurants')
-  //             .doc(restaurantId)
-  //             .get();
-
-  //         if (restaurantDoc.exists) {
-  //           final Map<String, dynamic>? restaurantData =
-  //               restaurantDoc.data() as Map<String, dynamic>?;
-  //           print(restaurantData);
-
-  //           final Map<String, dynamic>? favoriteRestaurantData =
-  //               (restaurantData?['restaurantId'] as Map<String, dynamic>?);
-
-  //           print(favoriteRestaurantData);
-
-  //           List<String> data = favoriteRestaurantData!.keys.toList();
-  //           allFavoriteRestaurantData.addAll(data);
-  //         }
-  //       }
-  //     }
-  //     print(allFavoriteRestaurantData);
-  //     return allFavoriteRestaurantData;
-  //   } catch (e) {
-  //     print('Error getting favorite restaurants: $e');
-  //     return [];
-  //   }
-  // }
 }

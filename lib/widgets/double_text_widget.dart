@@ -5,8 +5,7 @@ class AppDoubleTextWidget extends StatelessWidget {
   final String bigText;
   final String smallText;
   const AppDoubleTextWidget(
-      {Key? key, required this.bigText, required this.smallText})
-      : super(key: key);
+      {super.key, required this.bigText, required this.smallText});
 
   @override
   Widget build(BuildContext context) {

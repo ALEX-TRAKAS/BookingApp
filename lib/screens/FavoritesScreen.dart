@@ -3,11 +3,12 @@ import 'package:bookingapp/services/databaseFunctions.dart';
 import 'package:bookingapp/utils/AppStyles.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
 class FavoritesScreen extends StatefulWidget {
+  const FavoritesScreen({super.key});
+
   @override
   _FavoritesScreenState createState() => _FavoritesScreenState();
 }
@@ -51,17 +52,17 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Αγαπημένα'),
+        title: const Text('Αγαπημένα'),
       ),
       body: FutureBuilder<List<Map<String, dynamic>>?>(
         future: _favoriteRestData,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('Δεν υπάρχουν αγαπημένα.'));
+            return const Center(child: Text('Δεν υπάρχουν αγαπημένα.'));
           } else {
             List<Map<String, dynamic>>? favoriteRestaurants = snapshot.data!;
             return ListView.builder(
@@ -195,7 +196,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         const Gap(25),
                         IconButton(
                           iconSize: 30,
-                          icon: Icon(Icons.bookmark, color: Color(0xFF0F9B0F)),
+                          icon: const Icon(Icons.bookmark, color: Color(0xFF0F9B0F)),
                           onPressed: () {
                             _toggleFavorite(restaurants['id']);
                           },

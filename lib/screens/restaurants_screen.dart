@@ -8,7 +8,7 @@ import '../utils/appstyles.dart';
 
 class restaurantsTile extends StatelessWidget {
   final Map<String, dynamic> restaurant;
-  const restaurantsTile({Key? key, required this.restaurant}) : super(key: key);
+  const restaurantsTile({super.key, required this.restaurant});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ class restaurantsTile extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
-          border: Border(
+          border: const Border(
             top: BorderSide(
                 color: Color(0xFF0F9B0F), width: 0.1, style: BorderStyle.solid),
             left: BorderSide(
@@ -67,7 +67,7 @@ class restaurantsTile extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
+                const Icon(
                   Icons.location_on_sharp, // Choose your desired icon
                   size: 25.0, // Adjust the size of the icon
                   color: Color(0xFF0F9B0F), // Adjust the color of the icon
@@ -87,8 +87,8 @@ class restaurantsTile extends StatelessWidget {
               allowHalfRating: true,
               itemCount: 5,
               itemSize: 25.0,
-              itemPadding: EdgeInsets.symmetric(horizontal: 1.0),
-              itemBuilder: (context, _) => Icon(
+              itemPadding: const EdgeInsets.symmetric(horizontal: 1.0),
+              itemBuilder: (context, _) => const Icon(
                 Icons.star,
                 color: Color(0xFF0F9B0F),
               ),

@@ -7,9 +7,9 @@ import 'package:flutter/material.dart';
 class reservationScreen extends StatefulWidget {
   String? restaurantId = '';
   reservationScreen({
-    Key? key,
+    super.key,
     this.restaurantId,
-  }) : super(key: key);
+  });
 
   @override
   _CreateReservationScreenState createState() =>
@@ -60,8 +60,8 @@ class _CreateReservationScreenState extends State<reservationScreen> {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Select Number of Guests'),
-        content: Container(
+        title: const Text('Select Number of Guests'),
+        content: SizedBox(
           width: 300, // Adjust the width as needed
           child: SingleChildScrollView(
             child: Column(
@@ -70,12 +70,12 @@ class _CreateReservationScreenState extends State<reservationScreen> {
                 final number = index + 1;
                 return Card(
                   elevation: 2, // Add elevation for a card-like effect
-                  margin: EdgeInsets.symmetric(vertical: 4),
+                  margin: const EdgeInsets.symmetric(vertical: 4),
                   child: ListTile(
                     title: Center(
                       child: Text(
                         '$number Guests',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                           color: Colors.blue, // Customize the text color
@@ -99,7 +99,7 @@ class _CreateReservationScreenState extends State<reservationScreen> {
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: Text('Cancel'),
+            child: const Text('Cancel'),
           ),
         ],
       ),
@@ -122,7 +122,7 @@ class _CreateReservationScreenState extends State<reservationScreen> {
             children: <Widget>[
               Row(
                 children: <Widget>[
-                  Text('Hour: '),
+                  const Text('Hour: '),
                   DropdownButton<int>(
                     value: selectedHour,
                     onChanged: (int? value) {
@@ -143,7 +143,7 @@ class _CreateReservationScreenState extends State<reservationScreen> {
               ),
               Row(
                 children: <Widget>[
-                  Text('Minute: '),
+                  const Text('Minute: '),
                   DropdownButton<int>(
                     value: roundedMinute,
                     onChanged: (int? value) {
@@ -188,7 +188,7 @@ class _CreateReservationScreenState extends State<reservationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Create Reservation'),
+        title: const Text('Create Reservation'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -196,7 +196,7 @@ class _CreateReservationScreenState extends State<reservationScreen> {
           children: [
             // Date and Time
             ListTile(
-              title: Text('Date and Time'),
+              title: const Text('Date and Time'),
               subtitle: Text(
                 _selectedDateTime != null
                     ? _selectedDateTime.toString()
@@ -207,7 +207,7 @@ class _CreateReservationScreenState extends State<reservationScreen> {
                   context: context,
                   initialDate: DateTime.now(),
                   firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(Duration(days: 365)),
+                  lastDate: DateTime.now().add(const Duration(days: 365)),
                 );
                 if (selectedDateTime != null) {
                   TimeOfDay? selectedTime =
@@ -227,13 +227,13 @@ class _CreateReservationScreenState extends State<reservationScreen> {
               },
             ),
             ListTile(
-              title: Text(
+              title: const Text(
                 'Number of Guests',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               subtitle: Text(
                 '$_numberOfGuests',
-                style: TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: 16),
               ),
               onTap: () => _selectNumberOfGuests(context),
               tileColor: Colors.blue
@@ -247,30 +247,30 @@ class _CreateReservationScreenState extends State<reservationScreen> {
             // Special Requests
             TextFormField(
               controller: _specialRequestsController,
-              decoration: InputDecoration(labelText: 'Special Requests'),
+              decoration: const InputDecoration(labelText: 'Special Requests'),
               maxLines: 3,
             ),
 
             // Contact Information
             TextFormField(
               controller: _contactNameController,
-              decoration: InputDecoration(labelText: 'Contact Name'),
+              decoration: const InputDecoration(labelText: 'Contact Name'),
             ),
             TextFormField(
               controller: _contactPhoneNumberController,
-              decoration: InputDecoration(labelText: 'Contact Phone Number'),
+              decoration: const InputDecoration(labelText: 'Contact Phone Number'),
               keyboardType: TextInputType.phone,
             ),
             TextFormField(
               controller: _contactEmailController,
-              decoration: InputDecoration(labelText: 'Contact Email'),
+              decoration: const InputDecoration(labelText: 'Contact Email'),
               keyboardType: TextInputType.emailAddress,
             ),
 
             // Table Assignment
             TextFormField(
               controller: _tableAssignmentController,
-              decoration: InputDecoration(labelText: 'Table Assignment'),
+              decoration: const InputDecoration(labelText: 'Table Assignment'),
             ),
 
             // Submit Button
@@ -298,7 +298,7 @@ class _CreateReservationScreenState extends State<reservationScreen> {
                   lastUpdatedTimestamp: Timestamp.now(),
                 );
               },
-              child: Text('Create Reservation'),
+              child: const Text('Create Reservation'),
             ),
           ],
         ),

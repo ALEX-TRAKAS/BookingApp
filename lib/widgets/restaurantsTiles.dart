@@ -5,8 +5,7 @@ import '../utils/appstyles.dart';
 
 class restaurantsTiles extends StatelessWidget {
   final Map<String, dynamic> restaurantData;
-  const restaurantsTiles({Key? key, required this.restaurantData})
-      : super(key: key);
+  const restaurantsTiles({super.key, required this.restaurantData});
 
   @override
   Widget build(BuildContext context) {

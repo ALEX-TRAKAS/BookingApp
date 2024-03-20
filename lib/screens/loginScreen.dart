@@ -159,7 +159,7 @@ class _login_screenState extends State<loginScreen> {
                         style: TextStyle(
                             color: Colors.grey.shade600, fontSize: 12),
                       ),
-                      Text(
+                      const Text(
                         'Επαναφορά κωδικού πρόσβασης.',
                         style: TextStyle(
                           color: primary,
@@ -232,7 +232,7 @@ class _login_screenState extends State<loginScreen> {
                     ),
                     GestureDetector(
                       onTap: () => context.goNamed(signupNameRoute),
-                      child: Text(
+                      child: const Text(
                         'Εγγραφή τώρα',
                         style: TextStyle(
                             color: primary,

@@ -1,8 +1,6 @@
 import 'package:bookingapp/routes/name_route.dart';
 import 'package:bookingapp/services/databaseFunctions.dart';
 import 'package:bookingapp/utils/AppStyles.dart';
-import 'package:bookingapp/widgets/circleButton.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -11,7 +9,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 class DetailedRestaurantScreen extends StatefulWidget {
   final String? restaurantId;
 
-  DetailedRestaurantScreen({Key? key, this.restaurantId}) : super(key: key);
+  const DetailedRestaurantScreen({super.key, this.restaurantId});
 
   @override
   _DetailedRestaurantScreenState createState() =>
@@ -71,10 +69,11 @@ class _DetailedRestaurantScreenState extends State<DetailedRestaurantScreen> {
     }
   }
 
+  @override
   Widget build(BuildContext context) {
     if (_restaurantData == null) {
       // Handle the case where data is not available yet, e.g., show a loading indicator
-      return CircularProgressIndicator();
+      return const CircularProgressIndicator();
     } else {
       return Scaffold(
         appBar: AppBar(
@@ -99,13 +98,13 @@ class _DetailedRestaurantScreenState extends State<DetailedRestaurantScreen> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   // Return a placeholder widget while waiting for the future to complete
-                  return Icon(
+                  return const Icon(
                     Icons.bookmark,
                     color: Colors.grey, // You can customize the error color
                   );
                 } else if (snapshot.hasError) {
                   // Return a widget to display the error if the future throws an error
-                  return Icon(
+                  return const Icon(
                     Icons.error_outline,
                     color: Colors.red, // You can customize the error color
                   );
@@ -118,7 +117,7 @@ class _DetailedRestaurantScreenState extends State<DetailedRestaurantScreen> {
                       shape: CircleBorder(),
                     ),
                     child: IconButton(
-                      icon: Icon(Icons.bookmark),
+                      icon: const Icon(Icons.bookmark),
                       onPressed: () {
                         _toggleFavorite(widget.restaurantId!);
                         setState(() {});
@@ -136,13 +135,13 @@ class _DetailedRestaurantScreenState extends State<DetailedRestaurantScreen> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               // Data is still loading
-              return CircularProgressIndicator();
+              return const CircularProgressIndicator();
             } else if (snapshot.hasError) {
               // An error occurred
               return Text('Error: ${snapshot.error}');
             } else if (!snapshot.hasData || snapshot.data == null) {
               // No data available
-              return Text('No restaurant data available');
+              return const Text('No restaurant data available');
             } else {
               // Data has been loaded successfully
               Map<String, dynamic> restaurantData = snapshot.data!;
@@ -192,11 +191,11 @@ class _DetailedRestaurantScreenState extends State<DetailedRestaurantScreen> {
               return ListView(
                 children: [
                   // Restaurant Images
-                  Container(
+                  SizedBox(
                     height: 200,
                     child: ListView(
                       scrollDirection: Axis.horizontal,
-                      children: [
+                      children: const [
                         // TODO: Add code to display images
                       ],
                     ),
@@ -210,15 +209,15 @@ class _DetailedRestaurantScreenState extends State<DetailedRestaurantScreen> {
                       children: [
                         Text(
                           'Restaurant Name: ${restaurantData['name']}',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
                           'Description: ${restaurantData['description']}',
-                          style: TextStyle(fontSize: 16),
+                          style: const TextStyle(fontSize: 16),
                         ),
                       ],
                     ),
@@ -226,29 +225,29 @@ class _DetailedRestaurantScreenState extends State<DetailedRestaurantScreen> {
 
                   // Additional Information
                   ListTile(
-                    title: Text('Location'),
+                    title: const Text('Location'),
                     subtitle: Text(formattedLocation),
                   ),
                   const Divider(),
                   ListTile(
-                    title: Text('menu'),
+                    title: const Text('menu'),
                     subtitle: Text(formattedMenu),
                   ),
 
                   ListTile(
-                    title: Text('Phone'),
+                    title: const Text('Phone'),
                     subtitle: Text(restaurantData['contact']['phone']),
                   ),
                   ListTile(
-                    title: Text('Opening Hours'),
+                    title: const Text('Opening Hours'),
                     subtitle: Text(formattedOpeningHours),
                   ),
                   // Google Map for Restaurant Location
 
-                  Container(
+                  SizedBox(
                     height: 200,
                     child: GoogleMap(
-                      initialCameraPosition: CameraPosition(
+                      initialCameraPosition: const CameraPosition(
                         target: LatLng(
                           37.7749,
                           -122.4194, // Replace with actual coordinates
@@ -256,7 +255,7 @@ class _DetailedRestaurantScreenState extends State<DetailedRestaurantScreen> {
                         zoom: 15,
                       ),
                       markers: {
-                        Marker(
+                        const Marker(
                           markerId: MarkerId('restaurant-location'),
                           position: LatLng(
                             37.7749,
@@ -273,7 +272,7 @@ class _DetailedRestaurantScreenState extends State<DetailedRestaurantScreen> {
                     onPressed: () {
                       db.addRestaurant();
                     },
-                    child: Icon(Icons.add),
+                    child: const Icon(Icons.add),
                   ),
 
                   // Button to navigate to the reservation screen
@@ -284,7 +283,7 @@ class _DetailedRestaurantScreenState extends State<DetailedRestaurantScreen> {
                         queryParameters: {'restaurantId': widget.restaurantId},
                       );
                     },
-                    child: Text('Create Reservation'),
+                    child: const Text('Create Reservation'),
                   ),
                 ],
               );

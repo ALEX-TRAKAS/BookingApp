@@ -7,6 +7,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
 class LocationSearchScreen extends StatefulWidget {
+  const LocationSearchScreen({super.key});
+
   @override
   _LocationSearchScreenState createState() => _LocationSearchScreenState();
 }
@@ -24,12 +26,19 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       return;
     }
 
-    final url =
-        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$searchTerm&types=geocode&language=el&key=$apiKey';
+    // final url =
+    //     'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$searchTerm&types=geocode&language=el&key=$apiKey';
+    final url = 'https://maps.googleapis.com/maps/api/place/autocomplete/json?'
+        'input=$searchTerm&'
+        'types=(regions)&'
+        'components=country:gr&'
+        'language=el&'
+        'key=$apiKey';
 
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
+
       final List<dynamic> predictions = data['predictions'];
 
       setState(() {
@@ -42,13 +51,30 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   }
 
   void _getPlaceDetails(String placeId) async {
-    final url =
-        'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&fields=name,formatted_address,geometry&key=$apiKey';
+    final url = 'https://maps.googleapis.com/maps/api/place/details/json?'
+        'place_id=$placeId&'
+        'fields=name,formatted_address,geometry,address_components&'
+        'key=$apiKey&'
+        'language=el';
 
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final Map<String, dynamic> result = data['result'];
+      final List<dynamic> addressComponents = result['address_components'];
+      print(result['address_components']);
+
+      // Iterate through the address components to find the postal code
+      String postalCode = '';
+      for (var component in addressComponents) {
+        final List<dynamic> types = component['types'];
+        if (types.contains('postal_code')) {
+          postalCode = component['long_name'];
+          break;
+        }
+      }
+
+      // Get other details like name, formatted address, and location
       final Map<String, dynamic> geometry = result['geometry'];
       final Map<String, dynamic> location = geometry['location'];
       final double lat = location['lat'];
@@ -57,7 +83,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       final String formattedAddress = result['formatted_address'];
 
       print(
-          'Name: $name, Formatted Address: $formattedAddress, Latitude: $lat, Longitude: $lng');
+          'Name: $name, Formatted Address: $formattedAddress, Latitude: $lat, Longitude: $lng, Postal Code: $postalCode');
 
       // Return selected location back to previous screen
       Navigator.pop(context, {
@@ -65,12 +91,45 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         'formatted_address': formattedAddress,
         'lat': lat,
         'lng': lng,
+        'postal_code': postalCode,
       });
     } else {
       // Handle error
       print('Error: ${response.reasonPhrase}');
     }
   }
+
+  // void _getPlaceDetails(String placeId) async {
+  //   final url =
+  //       'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&fields=name,formatted_address,geometry&key=$apiKey';
+
+  //   final response = await http.get(Uri.parse(url));
+  //   if (response.statusCode == 200) {
+  //     final data = json.decode(response.body);
+  //     print(response);
+  //     final Map<String, dynamic> result = data['result'];
+  //     final Map<String, dynamic> geometry = result['geometry'];
+  //     final Map<String, dynamic> location = geometry['location'];
+  //     final double lat = location['lat'];
+  //     final double lng = location['lng'];
+  //     final String name = result['name'];
+  //     final String formattedAddress = result['formatted_address'];
+
+  //     print(
+  //         'Name: $name, Formatted Address: $formattedAddress, Latitude: $lat, Longitude: $lng');
+
+  //     // Return selected location back to previous screen
+  //     Navigator.pop(context, {
+  //       'name': name,
+  //       'formatted_address': formattedAddress,
+  //       'lat': lat,
+  //       'lng': lng,
+  //     });
+  //   } else {
+  //     // Handle error
+  //     print('Error: ${response.reasonPhrase}');
+  //   }
+  // }
 
   Future<void> _getCurrentLocation() async {
     setState(() {
@@ -88,15 +147,21 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       );
 
       // Check if the widget is still mounted before updating the state
-      if (mounted) {
-        // Limiting to the first result if available
-        if (placemarks.isNotEmpty) {
-          Placemark firstPlacemark = placemarks.first;
+      // Check if placemarks is not empty and the first element is not null
+      if (placemarks.isNotEmpty) {
+        Placemark firstPlacemark =
+            placemarks.first; // Access the first element safely
+
+        // Check if any property of firstPlacemark is null
+        if (firstPlacemark.name != null &&
+            firstPlacemark.locality != null &&
+            firstPlacemark.postalCode != null) {
           Navigator.pop(context, {
-            'name': firstPlacemark.name,
-            'formatted_address': firstPlacemark.locality,
+            'name': firstPlacemark.name!,
+            'formatted_address': firstPlacemark.locality!,
             'lat': position.latitude,
             'lng': position.longitude,
+            'postal_code': firstPlacemark.postalCode!,
           });
         }
       }
@@ -116,6 +181,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Επίλεξε περιοχή'),
       ),

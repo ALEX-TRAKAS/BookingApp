@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:bookingapp/utils/AppStyles.dart';
 import 'package:bookingapp/services/auth_service.dart';
-import 'package:bookingapp/services/databaseFunctions.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class profileScreen extends StatefulWidget {
-  const profileScreen({Key? key}) : super(key: key);
+  const profileScreen({super.key});
 
   @override
-  _profileScreenState createState() => new _profileScreenState();
+  _profileScreenState createState() => _profileScreenState();
 }
 
 class _profileScreenState extends State<profileScreen> {
@@ -23,17 +23,19 @@ class _profileScreenState extends State<profileScreen> {
     super.dispose();
   }
 
+  @override
   void initState() {
     print('Init state of profileScreen called.');
-    getDatabaseData();
+    loadDataFromLocalStorage();
     super.initState();
   }
 
-  void getDatabaseData() async {
-    userData = await databaseFunctions.getUserData(user!.uid);
-    profilePicUrl = userData?['photoURL'];
-    displayName = userData?['displayName'];
-    setState(() {});
+  Future<void> loadDataFromLocalStorage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      profilePicUrl = prefs.getString('profilePicUrl') ?? '';
+      displayName = prefs.getString('displayName') ?? '';
+    });
   }
 
   @override
@@ -54,20 +56,14 @@ class _profileScreenState extends State<profileScreen> {
                       fit: StackFit.expand,
                       children: [
                         CircleAvatar(
-                          backgroundColor: Colors.grey,
+                          backgroundColor: Styles.primaryColor,
                           backgroundImage: profilePicUrl.isNotEmpty
                               ? NetworkImage(profilePicUrl)
                               : null,
+                          child: profilePicUrl == ''
+                              ? const Icon(Icons.person, size: 75)
+                              : null,
                         ),
-                        // Container(
-                        //   decoration: BoxDecoration(
-                        //     color: Colors.black,
-                        //     shape: BoxShape.circle,
-                        //     image: DecorationImage(
-                        //         fit: BoxFit.cover,
-                        //         image: NetworkImage(profilePicUrl)),
-                        //   ),
-                        // ),
                       ],
                     ),
                   ),
@@ -84,7 +80,7 @@ class _profileScreenState extends State<profileScreen> {
                         displayName,
                         style: Theme.of(context)
                             .textTheme
-                            .headline6
+                            .titleLarge
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 16),

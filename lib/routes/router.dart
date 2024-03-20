@@ -40,7 +40,7 @@ abstract class AppRouter {
             GoRoute(
               name: homeSearchNameRoute,
               path: homeSearchRoute,
-              builder: (context, state) => SearchScreen(),
+              builder: (context, state) => const SearchScreen(),
             ),
           ],
         ),
@@ -52,7 +52,7 @@ abstract class AppRouter {
         GoRoute(
           name: searchNameRoute,
           path: searchRoute,
-          builder: (context, state) => SearchScreen(),
+          builder: (context, state) => const SearchScreen(),
           // routes: <RouteBase>[
           //   GoRoute(
           //     name: restaurantsDetailedScreenNameRoute,
@@ -71,12 +71,12 @@ abstract class AppRouter {
         GoRoute(
           name: navigationHubNameRoute,
           path: navigationHubRoute,
-          builder: (context, state) => navigationHub(),
+          builder: (context, state) => const navigationHub(),
         ),
         GoRoute(
           name: reservationsNameRoute,
           path: reservationsRoute,
-          builder: (context, state) => ReservationsScreen(),
+          builder: (context, state) => const ReservationsScreen(),
         ),
         // GoRoute(
         //   name: filterNameRoute,
@@ -100,7 +100,7 @@ abstract class AppRouter {
         GoRoute(
           name: locationSearchScreenNameRoute,
           path: locationSearchScreenRoute,
-          builder: (context, state) => LocationSearchScreen(),
+          builder: (context, state) => const LocationSearchScreen(),
         ),
       ],
       errorBuilder: (context, state) => ErrorScreen(exception: state.error),

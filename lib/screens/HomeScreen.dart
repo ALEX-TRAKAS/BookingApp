@@ -9,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/double_text_widget.dart';
 import 'package:bookingapp/widgets/circle_box.dart';
 
@@ -20,32 +21,64 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String concatenatedLocation = '';
   Map<String, dynamic>? lastSavedLocation;
+  Map<String, Object> selectedLocation = {};
+
   final User? user = FirebaseAuth.instance.currentUser;
   List<Map<String, dynamic>> restaurants = [];
   Map<String, dynamic>? userData;
   String profilePicUrl = '';
   int counter = 0;
   bool isLocationSelected = false;
+  bool homeInputFlag = false;
 
   @override
   void initState() {
+    loadLocationData();
     print('Init state of HomeScreen called.');
-    getDatabaseData();
     if (mounted) {
       super.initState();
     }
-    // showLocation();
   }
 
-  Future<void> getDatabaseData() async {
-    userData = await databaseFunctions.getUserData(user!.uid);
-    print('User Data: $userData');
-    profilePicUrl = userData?['photoURL'];
-    restaurants = await databaseFunctions.getFromFirebase();
+  Future<void> getDatabaseData(String postalCode) async {
+    restaurants =
+        await databaseFunctions.getFromFirebase(postalCode.replaceAll(' ', ''));
     if (mounted) {
       setState(() {});
+    }
+  }
+
+  Future<void> setLocationData(Map<String, Object> selectedLocation) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setStringList('selectedLocation', [
+      selectedLocation['name'].toString(),
+      selectedLocation['formatted_address'].toString(),
+      selectedLocation['lat'].toString(),
+      selectedLocation['lng'].toString(),
+      selectedLocation['postal_code'].toString(),
+    ]);
+    print(prefs.getStringList('selectedLocation') ?? []);
+  }
+
+  Future<void> loadLocationData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? locationData = prefs.getStringList('selectedLocation');
+    if (locationData != null && locationData.length >= 4) {
+      selectedLocation = {
+        'name': locationData[0],
+        'formatted_address': locationData[1],
+        'lat': double.parse(locationData[2]),
+        'lng': double.parse(locationData[3]),
+        'postal_code': locationData[4],
+      };
+      isLocationSelected = true;
+      homeInputFlag = true;
+      print("postal code to getdata:");
+      getDatabaseData(locationData[4]);
+    } else {
+      // Handle the case where the data is not available or incomplete
+      print('Error: Could not retrieve location data from SharedPreferences');
     }
   }
 
@@ -73,34 +106,64 @@ class _HomeScreenState extends State<HomeScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              IconButton(
-                                icon: const Icon(
-                                    Icons.location_on), // Change location icon
-                                onPressed: () async {
-                                  final selectedLocation = await context
-                                      .pushNamed(locationSearchScreenNameRoute);
-                                  if (selectedLocation != null) {
-                                    print(
-                                        'Selected location name: ${selectedLocation}');
-                                    setState(() {
-                                      isLocationSelected = true;
-                                    });
-                                  }
-                                },
+                              Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Styles.primaryColor,
+                                    width: 2.0,
+                                  ),
+                                ),
+                                padding: const EdgeInsets.all(3.0),
+                                child: Row(
+                                  children: [
+                                    IconButton(
+                                      iconSize: 30,
+                                      icon: Icon(Icons.location_on,
+                                          color: Styles
+                                              .primaryColor), // Change location icon
+                                      onPressed: () async {
+                                        final selectedLocation =
+                                            await context.pushNamed(
+                                                    locationSearchScreenNameRoute)
+                                                as Map<String, Object>?;
+
+                                        if (selectedLocation != null) {
+                                          print('selected location name :');
+                                          print(selectedLocation['name']);
+                                          setState(() {
+                                            isLocationSelected = true;
+                                            homeInputFlag = true;
+                                            setLocationData(selectedLocation);
+                                          });
+                                          loadLocationData();
+                                        }
+                                      },
+                                    ),
+                                    Text(
+                                      selectedLocation.isNotEmpty
+                                          ? '${selectedLocation['formatted_address']!}'
+                                          : 'Παρακαλώ επιλέξτε πρώτα τοποθεσία',
+                                      // style: Styles.headLineStyle1,
+                                    ),
+                                  ],
+                                ),
                               ),
-                              // Text(
-                              //   'Κάνε κράτηση',
-                              //   style: Styles.headLineStyle1,
-                              // ),
+                              Text(
+                                'Κάνε κράτηση',
+                                style: Styles.headLineStyle1,
+                              ),
                             ],
                           ),
-                          CircleAvatar(
-                            radius: 40,
-                            backgroundColor: Colors.grey,
-                            backgroundImage: profilePicUrl.isNotEmpty
-                                ? NetworkImage(profilePicUrl)
-                                : null,
-                          ),
+                          // CircleAvatar(
+                          //   radius: 40,
+                          //   backgroundColor: Styles.primaryColor,
+                          //   backgroundImage: profilePicUrl.isNotEmpty
+                          //       ? NetworkImage(profilePicUrl)
+                          //       : null,
+                          //   child: profilePicUrl == ''
+                          //       ? const Icon(Icons.person, size: 45)
+                          //       : null,
+                          // ),
                           // Container(
                           //   width: 70,
                           //   height: 70,
@@ -131,11 +194,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                   onTap: () {
                                     context.pushNamed(homeSearchNameRoute);
                                   },
-                                  decoration: const InputDecoration(
+                                  decoration: InputDecoration(
+                                      enabled: homeInputFlag,
                                       labelText: "Αναζήτηση...",
                                       hintText: "Αναζήτηση...",
-                                      prefixIcon: Icon(Icons.search),
-                                      border: OutlineInputBorder(
+                                      prefixIcon: const Icon(Icons.search),
+                                      border: const OutlineInputBorder(
                                           borderRadius: BorderRadius.all(
                                               Radius.circular(25.0)))),
                                 ),
@@ -150,9 +214,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (!isLocationSelected)
                   Column(
                     children: [
-                      Text(
-                        'PRWTA EPELEKSE TOPO8ESIA',
-                        style: Styles.headLineStyle1,
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.black,
+                            width: 2.0,
+                          ),
+                        ),
+                        padding: const EdgeInsets.all(8.0),
+                        child: const Text(
+                          'Παρακαλώ επιλέξτε πρώτα τοποθεσία',
+                          style: TextStyle(
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),

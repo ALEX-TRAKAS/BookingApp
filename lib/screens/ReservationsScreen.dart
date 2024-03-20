@@ -3,6 +3,8 @@ import 'package:bookingapp/services/databaseFunctions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class ReservationsScreen extends StatefulWidget {
+  const ReservationsScreen({super.key});
+
   @override
   _ReservationsScreenState createState() => _ReservationsScreenState();
 }
@@ -44,17 +46,17 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Κρατήσεις'),
+        title: const Text('Κρατήσεις'),
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _reservations,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('Δεν υπάρχουν κρατήσεις.'));
+            return const Center(child: Text('Δεν υπάρχουν κρατήσεις.'));
           } else {
             List<Map<String, dynamic>> reservations = snapshot.data!;
             return ListView.builder(
@@ -65,7 +67,7 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                 return ListTile(
                   title: Text(item['reservationStatus']),
                   trailing: IconButton(
-                    icon: Icon(Icons.cancel, color: Colors.red),
+                    icon: const Icon(Icons.cancel, color: Colors.red),
                     onPressed: () {
                       _cancelReservation(item['id'].toString());
                     },

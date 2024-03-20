@@ -5,12 +5,12 @@ class UserData extends InheritedWidget {
   final List<Map<String, dynamic>> restaurants;
   final String profilePicUrl;
 
-  UserData({
-    required Widget child,
+  const UserData({super.key, 
+    required super.child,
     required this.userId,
     required this.restaurants,
     required this.profilePicUrl,
-  }) : super(child: child);
+  });
 
   static UserData? of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<UserData>();

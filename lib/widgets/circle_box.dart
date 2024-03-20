@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class circle_box extends StatelessWidget {
   final Map<String, dynamic> circle;
-  const circle_box({Key? key, required this.circle}) : super(key: key);
+  const circle_box({super.key, required this.circle});
 
   @override
   Widget build(BuildContext context) {
@@ -28,13 +28,13 @@ class circle_box extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(height: 10.0),
+        const SizedBox(height: 10.0),
         Align(
           alignment: Alignment
               .center, // Align however you like (i.e .centerRight, centerLeft)
           child: Text(
             circle['cuisine'],
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16.0,
               fontWeight: FontWeight.bold,
             ),

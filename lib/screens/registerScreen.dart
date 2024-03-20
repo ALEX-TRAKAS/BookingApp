@@ -101,7 +101,7 @@ class _register_screenState extends State<registerScreen> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text('OK'),
+              child: const Text('OK'),
             ),
           ],
         );
@@ -112,7 +112,7 @@ class _register_screenState extends State<registerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 243, 243, 243),
+      backgroundColor: const Color.fromARGB(255, 243, 243, 243),
       // resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -129,7 +129,7 @@ class _register_screenState extends State<registerScreen> {
                 ),
                 const SizedBox(height: 10),
                 //welcome back you been missed
-                Text(
+                const Text(
                   'Δημιουργία Λογαριασμού!',
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -240,7 +240,7 @@ class _register_screenState extends State<registerScreen> {
                     ),
                     GestureDetector(
                       onTap: () => context.goNamed(loginNameRoute),
-                      child: Text(
+                      child: const Text(
                         'Σύνδεση',
                         style: TextStyle(
                             color: primary,

@@ -6,12 +6,12 @@ class CircleIconButton extends StatelessWidget {
   final Color backgroundColor; // Add this line
 
   const CircleIconButton({
-    Key? key,
+    super.key,
     required this.icon,
     required this.onPressed,
     this.backgroundColor = Colors.grey,
     required MaterialColor iconColor, // Set a default color or modify as needed
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class CircleIconButton extends StatelessWidget {
         onPressed: onPressed,
         iconSize: 30.0,
         splashRadius: 24.0,
-        padding: EdgeInsets.all(0.0),
+        padding: const EdgeInsets.all(0.0),
         color: Colors.white, // Set the icon color here
         tooltip: 'Open menu',
         splashColor: Colors.transparent,
