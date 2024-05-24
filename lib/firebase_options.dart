@@ -50,17 +50,7 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyD5zJtjtKxBho4B1N7hiryYzg8V2dbt154',
-    appId: '1:500733475144:web:f0af831f5c600c70bc1b7d',
-    messagingSenderId: '500733475144',
-    projectId: 'bookingapp-ff114',
-    authDomain: 'bookingapp-ff114.firebaseapp.com',
-    databaseURL:
-        'https://bookingapp-ff114-default-rtdb.europe-west1.firebasedatabase.app',
-    storageBucket: 'bookingapp-ff114.appspot.com',
-    measurementId: 'G-EY2NMK9BNK',
-  );
+
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: apiKey,
