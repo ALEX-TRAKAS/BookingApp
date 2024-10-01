@@ -1,8 +1,16 @@
+import 'package:bookingapp/routes/name_route.dart';
+import 'package:bookingapp/services/databaseFunctions.dart';
+import 'package:bookingapp/widgets/customDrawer.dart';
+import 'package:bookingapp/widgets/webFooter.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:bookingapp/utils/AppStyles.dart';
 import 'package:bookingapp/services/auth_service.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class profileScreen extends StatefulWidget {
@@ -17,7 +25,11 @@ class _profileScreenState extends State<profileScreen> {
   Map<String, dynamic>? userData;
   String profilePicUrl = '';
   String displayName = '';
-
+  String lastName = '';
+  String firstName = '';
+  String phone = '';
+  String email = '';
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   void dispose() {
     super.dispose();
@@ -26,179 +38,363 @@ class _profileScreenState extends State<profileScreen> {
   @override
   void initState() {
     print('Init state of profileScreen called.');
-    loadDataFromLocalStorage();
+    print(user);
+    loadData();
     super.initState();
   }
 
-  Future<void> loadDataFromLocalStorage() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+  Future<void> loadData() async {
+    Map<String, dynamic>? userData =
+        await databaseFunctions().getUserData(user!.uid);
+
+    print(userData);
     setState(() {
-      profilePicUrl = prefs.getString('profilePicUrl') ?? '';
-      displayName = prefs.getString('displayName') ?? '';
+      if (user!.photoURL == null) {
+        profilePicUrl = '';
+      } else {
+        profilePicUrl = user!.photoURL.toString();
+      }
+      if (user!.displayName == null) {
+        displayName = userData!['firstName'] + '\t' + userData!['lastName'];
+        firstName = userData!['firstName'];
+        lastName = userData!['lastName'];
+      } else {
+        displayName = user!.displayName!;
+      }
+      if (userData!['phone'] != null) {
+        phone = userData['phone'];
+      }
+      if (userData!['email'] != null) {
+        email = userData['email'];
+      }
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
+  AppBar buildWebAppBar() {
+    final bool isMobileWidth = MediaQuery.of(context).size.width < 600;
+    return AppBar(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.white,
+      shadowColor: Colors.white,
+      elevation: 0,
+      toolbarHeight: 90,
+      automaticallyImplyLeading: false,
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          InkWell(
+            onTap: () => {context.goNamed(authNameRoute)},
+            child: Image.asset(
+              'assets/images/logo.png',
+              height: 90,
+            ),
+          ),
+          if (user != null)
+            GestureDetector(
+              onTap: () {
+                _scaffoldKey.currentState?.openEndDrawer();
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (!isMobileWidth || !kIsWeb)
+                    Text(
+                      displayName,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  const SizedBox(width: 10),
+                  CircleAvatar(
+                    backgroundColor: Styles.primaryColor,
+                    backgroundImage: profilePicUrl.isNotEmpty
+                        ? NetworkImage(profilePicUrl)
+                        : null,
+                    child: profilePicUrl.isEmpty
+                        ? const Icon(Icons.person, size: 25)
+                        : null,
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  AppBar buildMobileAppBar() {
+    return AppBar(
+      title: const Text('Το προφίλ μου'),
+      bottom: const PreferredSize(
+        preferredSize: Size.fromHeight(1),
+        child: Divider(height: 1),
+      ),
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.white,
+      shadowColor: Colors.white,
+    );
+  }
+
+  Widget buildMobileLayout() {
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.white,
+    ));
     return PopScope(
-      child: SafeArea(
-        child: Scaffold(
-          body: Column(
-            children: [
-              Expanded(
-                flex: 2,
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: SizedBox(
-                    width: 150,
-                    height: 150,
-                    child: Stack(
-                      fit: StackFit.expand,
+        child: SafeArea(
+            child: Scaffold(
+      backgroundColor: Colors.white,
+      drawerScrimColor: Colors.white,
+      body: Column(
+        children: [
+          const Gap(20),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: SizedBox(
+                      width: 150,
+                      height: 150,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: Styles.primaryColor,
+                            backgroundImage: profilePicUrl.isNotEmpty
+                                ? CachedNetworkImageProvider(profilePicUrl)
+                                : null,
+                            child: profilePicUrl.isEmpty
+                                ? const Icon(Icons.person, size: 75)
+                                : null,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const Gap(5),
+                  Text(
+                    displayName,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const Gap(40),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Styles.secondaryColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CircleAvatar(
-                          backgroundColor: Styles.primaryColor,
-                          backgroundImage: profilePicUrl.isNotEmpty
-                              ? NetworkImage(profilePicUrl)
-                              : null,
-                          child: profilePicUrl == ''
-                              ? const Icon(Icons.person, size: 75)
-                              : null,
+                        Text('Display Name: $displayName',
+                            style: Theme.of(context).textTheme.bodyLarge),
+                        const Gap(10),
+                        Text('Last Name: $lastName',
+                            style: Theme.of(context).textTheme.bodyLarge),
+                        const Gap(10),
+                        Text('First Name: $firstName',
+                            style: Theme.of(context).textTheme.bodyLarge),
+                        const Gap(10),
+                        Text('Phone: $phone',
+                            style: Theme.of(context).textTheme.bodyLarge),
+                        const Gap(10),
+                        Text('Email: $email',
+                            style: Theme.of(context).textTheme.bodyLarge),
+                      ],
+                    ),
+                  ),
+                  const Gap(30),
+                  const Divider(height: 0),
+                  ListTile(
+                    title: const Text('Όροι'),
+                    onTap: () {},
+                  ),
+                  const Divider(height: 0),
+                  ListTile(
+                    title: const Text('Απόρρητο & Πολιτική'),
+                    onTap: () {},
+                  ),
+                  const Divider(height: 0),
+                  ListTile(
+                    title: const Text('Βοήθεια & Υποστήριξη'),
+                    onTap: () {},
+                  ),
+                  const Divider(height: 0),
+                  if (!kIsWeb)
+                    ListTile(
+                      title: const Text('Αποσύνδεση'),
+                      onTap: () {
+                        Authentication.signOutFromGoogle(context);
+                      },
+                    ),
+                  const Divider(height: 0),
+                  if (kIsWeb) webFooter(),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    )));
+  }
+
+  Widget buildWebLayout() {
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.white,
+    ));
+
+    return Column(
+      children: [
+        const Gap(20),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: 600,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Align(
+                          alignment: Alignment.topCenter,
+                          child: SizedBox(
+                            width: 150,
+                            height: 150,
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                CircleAvatar(
+                                  backgroundColor: Styles.primaryColor,
+                                  backgroundImage: profilePicUrl.isNotEmpty
+                                      ? CachedNetworkImageProvider(
+                                          profilePicUrl)
+                                      : null,
+                                  child: profilePicUrl.isEmpty
+                                      ? const Icon(Icons.person, size: 75)
+                                      : null,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
+                        const Gap(5),
+                        Text(
+                          displayName,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const Gap(50),
+                        const Divider(height: 0),
+                        ListTile(
+                          title: const Text('Όροι'),
+                          onTap: () {},
+                        ),
+                        const Divider(height: 0),
+                        ListTile(
+                          title: const Text('Απόρρητο & Πολιτική'),
+                          onTap: () {},
+                        ),
+                        const Divider(height: 0),
+                        ListTile(
+                          title: const Text('Βοήθεια & Υποστήριξη'),
+                          onTap: () {},
+                        ),
+                        const Gap(60),
                       ],
                     ),
                   ),
                 ),
-              ),
-              const Divider(height: 0),
-              Expanded(
-                flex: 6,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+                const SizedBox(width: 30),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Styles.secondaryColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        displayName,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          // Surface color mapping.
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              FloatingActionButton.large(
-                                foregroundColor: Colors.black,
-                                backgroundColor: primary,
-                                onPressed: () {
-                                  // Add your onPressed code here!
-                                },
-                                heroTag: "fab3",
-                                child: const Icon(Icons.rate_review),
-                              ),
-                              const SizedBox(height: 20),
-                              const Text("Κριτικές",
-                                  style: TextStyle(
-                                      fontStyle: FontStyle.normal,
-                                      fontFamily: 'Roboto',
-                                      fontSize: 20)),
-                            ],
-                          ),
-                          const Gap(20),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              FloatingActionButton.large(
-                                foregroundColor: Colors.black,
-                                backgroundColor: primary,
-                                onPressed: () {
-                                  // Add your onPressed code here!
-                                },
-                                heroTag: "fab4",
-                                child: const Icon(Icons.calendar_month),
-                              ),
-                              const SizedBox(height: 20),
-                              const Text("Κρατήσεις",
-                                  style: TextStyle(
-                                    fontStyle: FontStyle.normal,
-                                    fontFamily: 'Roboto',
-                                    fontSize: 20,
-                                  )),
-                            ],
-                          ),
-                          const Gap(20),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              FloatingActionButton.large(
-                                foregroundColor: Colors.black,
-                                backgroundColor: primary,
-                                onPressed: () {
-                                  // Add your onPressed code here!
-                                },
-                                heroTag: "fab5",
-                                child: const Icon(Icons.photo_camera),
-                              ),
-                              const SizedBox(height: 20),
-                              const Text("Φωτογραφίες",
-                                  style: TextStyle(
-                                      fontStyle: FontStyle.normal,
-                                      fontFamily: 'Roboto',
-                                      fontSize: 20)),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const Gap(20),
-                      Expanded(
-                        child: ListView(
-                          scrollDirection: Axis.vertical,
-                          itemExtent: 40.0,
-                          children: [
-                            ListTile(
-                              title: const Text('Όροι'),
-                              onTap: () {
-                                // Handle Όροι option
-                              },
-                            ),
-                            const Divider(height: 0),
-                            ListTile(
-                              title: const Text('Απόρρητο & Πολιτική'),
-                              onTap: () {
-                                // Handle Απόρρητο & Πολιτική option
-                              },
-                            ),
-                            const Divider(height: 0),
-                            ListTile(
-                              title: const Text('Βοήθεια & Υποστήριξη'),
-                              onTap: () {
-                                // Handle Βοήθεια & Υποστήριξη option
-                              },
-                            ),
-                            const Divider(height: 0),
-                            ListTile(
-                              title: const Text('Αποσύνδεση'),
-                              onTap: () {
-                                // Handle Αποσύνδεση option
-                                Authentication.signOutFromGoogle(context);
-                              },
-                            ),
-                            const Divider(height: 0),
-                          ],
-                        ),
-                      ),
+                      Text('Display Name: $displayName',
+                          style: Theme.of(context).textTheme.bodyLarge),
+                      const Gap(10),
+                      Text('Last Name: $lastName',
+                          style: Theme.of(context).textTheme.bodyLarge),
+                      const Gap(10),
+                      Text('First Name: $firstName',
+                          style: Theme.of(context).textTheme.bodyLarge),
+                      const Gap(10),
+                      Text('Phone: $phone',
+                          style: Theme.of(context).textTheme.bodyLarge),
+                      const Gap(10),
+                      Text('Email: $email',
+                          style: Theme.of(context).textTheme.bodyLarge),
                     ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
+        if (kIsWeb) webFooter(),
+      ],
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (kIsWeb) {
+      return Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: Colors.white,
+        appBar: buildWebAppBar(),
+        endDrawer: user != null
+            ? CustomDrawer(
+                displayName: displayName, profilePicUrl: profilePicUrl)
+            : null,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth >= 905) {
+              return buildWebLayout();
+            } else {
+              return buildMobileLayout();
+            }
+          },
+        ),
+      );
+    } else {
+      return Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: Colors.white,
+        appBar: buildMobileAppBar(),
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth > 800) {
+              return buildWebLayout();
+            } else {
+              return buildMobileLayout();
+            }
+          },
+        ),
+      );
+    }
   }
 }

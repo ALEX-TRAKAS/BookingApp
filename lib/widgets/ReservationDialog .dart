@@ -1,31 +1,24 @@
-import 'package:bookingapp/routes/name_route.dart';
-import 'package:bookingapp/screens/reservationCompleteScreen.dart';
-import 'package:bookingapp/screens/reservationScreenState.dart';
 import 'package:bookingapp/services/databaseFunctions.dart';
 import 'package:bookingapp/utils/AppStyles.dart';
-import 'package:bookingapp/widgets/webFooter.dart';
+import 'package:bookingapp/widgets/reservationCompleteScreen_dialog.dart';
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:validators/validators.dart' as validators;
+import 'package:intl/intl.dart';
 
-class reservationScreen extends StatefulWidget {
-  String? restaurantId = '';
-  reservationScreen({
-    super.key,
-    required this.restaurantId,
-  });
+class ReservationDialog extends StatefulWidget {
+  final String? restaurantId;
+
+  const ReservationDialog({Key? key, required this.restaurantId})
+      : super(key: key);
 
   @override
-  _CreateReservationScreenState createState() =>
-      _CreateReservationScreenState(restaurantId);
+  _ReservationDialogState createState() => _ReservationDialogState();
 }
 
-class _CreateReservationScreenState extends State<reservationScreen> {
+class _ReservationDialogState extends State<ReservationDialog> {
   final User? user = FirebaseAuth.instance.currentUser;
   int _numberOfGuests = 0;
   late TextEditingController _dateTimeController;
@@ -43,10 +36,7 @@ class _CreateReservationScreenState extends State<reservationScreen> {
   int selectedHour = TimeOfDay.now().hour;
   int roundedMinute = (TimeOfDay.now().minute >= 30) ? 30 : 0;
   final _formKey = GlobalKey<FormState>();
-  _CreateReservationScreenState(this.restaurantId);
-  final restaurantId;
   final db = databaseFunctions();
-
   @override
   void initState() {
     super.initState();
@@ -257,7 +247,7 @@ class _CreateReservationScreenState extends State<reservationScreen> {
           child: child!,
         );
       },
-      locale: const Locale('el'),
+      locale: const Locale('el'), // Greek locale
     );
 
     return pickedDate;
@@ -438,21 +428,25 @@ class _CreateReservationScreenState extends State<reservationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AlertDialog(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: const Text('Ολοκλήρωση Κράτησης'),
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1),
-        ),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Ολοκλήρωση Κράτησης',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          Divider(
+            color: Styles.primaryColor,
+            thickness: 2,
+          ),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      content: SingleChildScrollView(
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: Column(
             children: [
               // Date and Time
               ListTile(
@@ -573,66 +567,48 @@ class _CreateReservationScreenState extends State<reservationScreen> {
                 ),
                 maxLines: 3,
               ),
-              const Gap(10),
-              ElevatedButton(
-                onPressed: () {
-                  Timestamp? timestamp;
-                  if (_selectedDateTime != null && isFormValid()) {
-                    timestamp = Timestamp.fromDate(_selectedDateTime!);
-
-                    db.createReservation(
-                      reservationDateAndTime:
-                          timestamp, // the selected date and time
-                      numberOfGuests:
-                          _numberOfGuests, // the selected number of guests
-                      specialRequests:
-                          _specialRequestsController.text, // special requests
-                      contactName: _contactNameController.text, // contact name
-                      contactPhoneNumber: _contactPhoneNumberController
-                          .text, // contact phone number
-                      contactEmail:
-                          _contactEmailController.text, // contact email
-                      userID: user!.uid,
-                      restaurantID: restaurantId,
-                      restaurantName: restaurantName,
-                      reservationStatus: 'Εκκρεμής',
-                      creationTimestamp: Timestamp.now(),
-                      lastUpdatedTimestamp: Timestamp.now(),
-                    );
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return reservationCompleteScreen();
-                      },
-                    );
-                  } else {
-                    _showValidationAlert(context);
-                  }
-                },
-                style: ButtonStyle(
-                  side: MaterialStateProperty.resolveWith<BorderSide>((states) {
-                    return BorderSide(
-                      color: Styles.primaryColor,
-                    );
-                  }),
-                  foregroundColor:
-                      MaterialStateProperty.resolveWith<Color>((states) {
-                    return Styles.primaryColor;
-                  }),
-                  textStyle:
-                      MaterialStateProperty.resolveWith<TextStyle>((states) {
-                    return const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    );
-                  }),
-                ),
-                child: const Text('Ολοκλήρωση Κράτησης'),
-              ),
             ],
           ),
         ),
       ),
+      actions: [
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Ακύρωση'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Timestamp? timestamp;
+            if (_selectedDateTime != null && isFormValid()) {
+              timestamp = Timestamp.fromDate(_selectedDateTime!);
+
+              db.createReservation(
+                reservationDateAndTime: timestamp,
+                numberOfGuests: _numberOfGuests,
+                specialRequests: _specialRequestsController.text,
+                contactName: _contactNameController.text,
+                contactPhoneNumber: _contactPhoneNumberController.text,
+                contactEmail: _contactEmailController.text,
+                userID: user!.uid,
+                restaurantID: widget.restaurantId,
+                restaurantName: restaurantName,
+                reservationStatus: 'Εκκρεμής',
+                creationTimestamp: Timestamp.now(),
+                lastUpdatedTimestamp: Timestamp.now(),
+              );
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return const ReservationCompleteDialog();
+                },
+              );
+            } else {
+              _showValidationAlert(context);
+            }
+          },
+          child: const Text('Ολοκλήρωση Κράτησης'),
+        ),
+      ],
     );
   }
 }

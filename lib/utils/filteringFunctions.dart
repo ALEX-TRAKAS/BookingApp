@@ -1,3 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geolocator/geolocator.dart';
+
 List<Map<String, dynamic>> filterRestaurants(String day, String selectedTime,
     List<Map<String, dynamic>> initialRestaurants) {
   List<Map<String, dynamic>> filteredRestaurants = [];
@@ -13,6 +16,7 @@ List<Map<String, dynamic>> filterRestaurants(String day, String selectedTime,
       }
     }
   }
+  print(filteredRestaurants.length);
   return filteredRestaurants;
 }
 
@@ -39,9 +43,67 @@ bool isTimeInRange(String selectedTime, String startTime, String endTime) {
 String extractDay(String dateString) {
   // Find the index of the first space
   int spaceIndex = dateString.indexOf(' ');
-
   // Extract the substring from the start of the string to the first space
   String day = dateString.substring(0, spaceIndex);
 
   return day.toLowerCase();
+}
+
+List<Map<String, dynamic>> filterRestaurantsByCuisines(
+    List<Map<String, dynamic>> allRestaurants, String? selectedCuisine) {
+  List<Map<String, dynamic>> filteredRestaurants = [];
+
+  for (var restaurant in allRestaurants) {
+    String cuisine = restaurant['cuisine'] ?? '';
+
+    if (selectedCuisine == cuisine) {
+      filteredRestaurants.add(restaurant);
+    }
+  }
+
+  return filteredRestaurants;
+}
+
+List<Map<String, dynamic>> filterRestaurantsByDistance(
+    List<Map<String, dynamic>> restaurants,
+    double centerLat,
+    double centerLon,
+    double maxDistance) {
+  List<Map<String, dynamic>> nearbyRestaurants = [];
+  double restaurantLat;
+  double restaurantLon;
+
+  for (var restaurant in restaurants) {
+    var location = restaurant['Location'];
+    if (location != null) {
+      var coordinates = location['coordinates'] as GeoPoint?;
+      if (coordinates != null) {
+        var coordinates = location['coordinates'] as GeoPoint;
+        restaurantLat = coordinates.latitude;
+        restaurantLon = coordinates.longitude;
+        double distance = Geolocator.distanceBetween(
+            centerLat, centerLon, restaurantLat, restaurantLon);
+
+        if (distance <= maxDistance * 1000) {
+          nearbyRestaurants.add(restaurant);
+        }
+      }
+    }
+  }
+
+  return nearbyRestaurants;
+}
+
+List<Map<String, dynamic>> filterRestaurantsByRating(
+    List<Map<String, dynamic>> allRestaurants, double RatingValue) {
+  List<Map<String, dynamic>> filteredRestaurants = [];
+  for (var restaurant in allRestaurants) {
+    double rating = restaurant['rating'] ?? 0.0;
+    if (rating >= RatingValue) {
+      if (!filteredRestaurants.contains(restaurant)) {
+        filteredRestaurants.add(restaurant);
+      }
+    }
+  }
+  return filteredRestaurants;
 }

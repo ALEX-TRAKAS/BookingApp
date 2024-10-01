@@ -4,6 +4,8 @@ import 'package:bookingapp/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 import 'package:http/http.dart' as http;
 
 class LocationSearchScreen extends StatefulWidget {
@@ -26,8 +28,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       return;
     }
 
-    // final url =
-    //     'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$searchTerm&types=geocode&language=el&key=$apiKey';
     final url = 'https://maps.googleapis.com/maps/api/place/autocomplete/json?'
         'input=$searchTerm&'
         'types=(regions)&'
@@ -35,18 +35,22 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         'language=el&'
         'key=$apiKey';
 
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
 
-      final List<dynamic> predictions = data['predictions'];
+        final List<dynamic> predictions = data['predictions'];
 
-      setState(() {
-        _searchResults = predictions;
-      });
-    } else {
-      // Handle error
-      print('Error: ${response.reasonPhrase}');
+        setState(() {
+          _searchResults = predictions;
+        });
+      } else {
+        // Handle error
+        print('Error: ${response.reasonPhrase}');
+      }
+    } catch (error) {
+      print('Error: $error');
     }
   }
 
@@ -99,41 +103,83 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     }
   }
 
-  // void _getPlaceDetails(String placeId) async {
-  //   final url =
-  //       'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&fields=name,formatted_address,geometry&key=$apiKey';
+  // Future<void> _getCurrentLocation() async {
+  //   setState(() {
+  //     _isLoading = true; // Set loading state to true
+  //   });
 
-  //   final response = await http.get(Uri.parse(url));
-  //   if (response.statusCode == 200) {
-  //     final data = json.decode(response.body);
-  //     print(response);
-  //     final Map<String, dynamic> result = data['result'];
-  //     final Map<String, dynamic> geometry = result['geometry'];
-  //     final Map<String, dynamic> location = geometry['location'];
-  //     final double lat = location['lat'];
-  //     final double lng = location['lng'];
-  //     final String name = result['name'];
-  //     final String formattedAddress = result['formatted_address'];
+  //   try {
+  //     Position position = await Geolocator.getCurrentPosition(
+  //       desiredAccuracy: LocationAccuracy.high,
+  //     );
 
-  //     print(
-  //         'Name: $name, Formatted Address: $formattedAddress, Latitude: $lat, Longitude: $lng');
+  //     List<Placemark> placemarks = await placemarkFromCoordinates(
+  //       position.latitude,
+  //       position.longitude,
+  //     );
 
-  //     // Return selected location back to previous screen
-  //     Navigator.pop(context, {
-  //       'name': name,
-  //       'formatted_address': formattedAddress,
-  //       'lat': lat,
-  //       'lng': lng,
-  //     });
-  //   } else {
-  //     // Handle error
-  //     print('Error: ${response.reasonPhrase}');
+  //     // Check if the widget is still mounted before updating the state
+  //     // Check if placemarks is not empty and the first element is not null
+  //     if (placemarks.isNotEmpty) {
+  //       Placemark firstPlacemark =
+  //           placemarks.first; // Access the first element safely
+
+  //       // Check if any property of firstPlacemark is null
+  //       if (firstPlacemark.name != null &&
+  //           firstPlacemark.locality != null &&
+  //           firstPlacemark.postalCode != null) {
+  //         Navigator.pop(context, {
+  //           'name': firstPlacemark.name!,
+  //           'formatted_address': firstPlacemark.locality!,
+  //           'lat': position.latitude,
+  //           'lng': position.longitude,
+  //           'postal_code': firstPlacemark.postalCode!,
+  //         });
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print('Error getting current location: $e');
+  //   } finally {
+  //     // Check if the widget is still mounted before updating the state
+  //     if (mounted) {
+  //       setState(() {
+  //         _isLoading =
+  //             false; // Set loading state to false when location fetching is complete
+  //       });
+  //     }
   //   }
   // }
-
   Future<void> _getCurrentLocation() async {
+    // Check if location services are enabled (GPS is turned on)
+    bool isLocationServiceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!isLocationServiceEnabled) {
+      // If GPS is turned off, show a dialog to the user
+      _showLocationServiceDialog();
+      return;
+    }
+
+    // Check the location permission status
+    LocationPermission permission = await Geolocator.checkPermission();
+
+    // If permission is denied, request permission
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // If permission is still denied, show a dialog
+        _showPermissionDeniedDialog();
+        return;
+      }
+    }
+
+    // If permission is denied forever (user selected "Don't ask again"), show a different dialog
+    if (permission == LocationPermission.deniedForever) {
+      _showPermissionDeniedForeverDialog();
+      return;
+    }
+
+    // Permission is granted and GPS is enabled, get the location
     setState(() {
-      _isLoading = true; // Set loading state to true
+      _isLoading = true;
     });
 
     try {
@@ -146,43 +192,105 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         position.longitude,
       );
 
-      // Check if the widget is still mounted before updating the state
-      // Check if placemarks is not empty and the first element is not null
       if (placemarks.isNotEmpty) {
-        Placemark firstPlacemark =
-            placemarks.first; // Access the first element safely
-
-        // Check if any property of firstPlacemark is null
-        if (firstPlacemark.name != null &&
-            firstPlacemark.locality != null &&
-            firstPlacemark.postalCode != null) {
-          Navigator.pop(context, {
-            'name': firstPlacemark.name!,
-            'formatted_address': firstPlacemark.locality!,
-            'lat': position.latitude,
-            'lng': position.longitude,
-            'postal_code': firstPlacemark.postalCode!,
-          });
-        }
-      }
-    } catch (e) {
-      print('Error getting current location: $e');
-    } finally {
-      // Check if the widget is still mounted before updating the state
-      if (mounted) {
-        setState(() {
-          _isLoading =
-              false; // Set loading state to false when location fetching is complete
+        Placemark firstPlacemark = placemarks.first;
+        Navigator.pop(context, {
+          'name': firstPlacemark.name ?? '',
+          'formatted_address': firstPlacemark.locality ?? '',
+          'lat': position.latitude,
+          'lng': position.longitude,
+          'postal_code': firstPlacemark.postalCode ?? '',
         });
       }
+    } catch (e) {
+      print('Σφάλμα κατά την εύρεση της τοποθεσίας: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
+  }
+
+  void _showLocationServiceDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Το GPS είναι απενεργοποιημένο'),
+        content: const Text(
+            'Παρακαλούμε ενεργοποιήστε το GPS για να χρησιμοποιήσετε αυτή τη λειτουργία.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Geolocator.openLocationSettings();
+            },
+            child: const Text('Ενεργοποίηση GPS'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Ακύρωση'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPermissionDeniedDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Η άδεια τοποθεσίας απορρίφθηκε'),
+        content: const Text(
+            'Χρειάζεται άδεια τοποθεσίας για να χρησιμοποιήσετε αυτή τη λειτουργία.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Geolocator.requestPermission();
+            },
+            child: const Text('Εκχώρηση άδειας'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Ακύρωση'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPermissionDeniedForeverDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Η άδεια τοποθεσίας έχει απορριφθεί μόνιμα'),
+        content: const Text(
+          'Η άδεια τοποθεσίας έχει απορριφθεί μόνιμα. Παρακαλούμε ενεργοποιήστε την από τις ρυθμίσεις.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              openAppSettings();
+            },
+            child: const Text('Άνοιγμα ρυθμίσεων'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Ακύρωση'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      drawerScrimColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: const Text('Επίλεξε περιοχή'),
       ),
       body: Column(
@@ -197,7 +305,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               child: TextField(
                 controller: _searchController,
                 decoration: const InputDecoration(
-                  hintText: 'Search locations...',
+                  hintText: 'Περιοχή, Οδός, αριθμός,',
                   prefixIcon: Icon(Icons.search),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(25.0)),
@@ -230,7 +338,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               : Expanded(
                   child: _searchResults.isEmpty
                       ? const Center(
-                          child: Text('No results found.'),
+                          child: Text('Δεν βρέθηκαν αποτελέσματα.'),
                         )
                       : ListView.builder(
                           itemCount: _searchResults.length,

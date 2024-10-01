@@ -1,4 +1,6 @@
+import 'package:bookingapp/routes/name_route.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class circle_box extends StatelessWidget {
   final Map<String, dynamic> circle;
@@ -10,76 +12,67 @@ class circle_box extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ClipOval(
-          child: Container(
-            width: 75,
-            height: 75,
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 17),
-            margin: const EdgeInsets.only(
-              right: 30,
-              top: 5,
-            ),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                image: AssetImage('assets/images/${circle['image']}'),
-                fit: BoxFit.cover,
+        Center(
+          child: Column(
+            children: [
+              InkWell(
+                child: ClipOval(
+                  child: Container(
+                    width: 75,
+                    height: 75,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 15, vertical: 17),
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 15, vertical: 15),
+                    decoration: BoxDecoration(
+                      border: const Border(
+                        top: BorderSide(
+                            color: Color(0xFF0F9B0F),
+                            width: 0.1,
+                            style: BorderStyle.solid),
+                        left: BorderSide(
+                            color: Color(0xFF0F9B0F),
+                            width: 0.1,
+                            style: BorderStyle.solid),
+                        bottom: BorderSide(
+                            color: Color(0xFF0F9B0F),
+                            width: 1.0,
+                            style: BorderStyle.solid),
+                        right: BorderSide(
+                            color: Color(0xFF0F9B0F),
+                            width: 0.1,
+                            style: BorderStyle.solid),
+                      ),
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/${circle['image']}'),
+                        fit: BoxFit.cover,
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                ),
+                onTap: () {
+                  context.pushNamed(
+                    homeSearchNameRoute,
+                    queryParameters: {
+                      'cuisine': circle['cuisine'].toString(),
+                      'filterFlag': 'true',
+                    },
+                  );
+                },
               ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 10.0),
-        Align(
-          alignment: Alignment
-              .center, // Align however you like (i.e .centerRight, centerLeft)
-          child: Text(
-            circle['cuisine'],
-            style: const TextStyle(
-              fontSize: 16.0,
-              fontWeight: FontWeight.bold,
-            ),
+              const SizedBox(height: 5.0),
+              Text(
+                circle['cuisine'],
+                style: const TextStyle(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
         ),
       ],
     );
-    // Container(
-    //   width: 100,
-    //   height: 100,
-    //   padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 17),
-    //   margin: const EdgeInsets.only(
-    //     right: 17,
-    //     top: 5,
-    //   ),
-    //   decoration: BoxDecoration(
-    //       shape: BoxShape.circle,
-    //       image: DecorationImage(
-    //         image: AssetImage('assets/images/${circle['image']}'),
-    //         fit: BoxFit.cover,
-    //       ),
-    //       boxShadow: [
-    //         BoxShadow(
-    //             color: Colors.grey.shade200, blurRadius: 20, spreadRadius: 5),
-    //       ]),
-    //   child: Text(
-    //     circle['cuisine'],
-    //     style: TextStyle(
-    //       fontSize: 16.0,
-    //       fontWeight: FontWeight.bold,
-    //     ),
-    //   ),
-    //   // InkWell(onTap: () {
-    //   //   SimpleDialog(
-    //   //     title: const Text('Select assignment'),
-    //   //   );
-    //   // }),
-    //   // Column(
-    //   //   crossAxisAlignment: CrossAxisAlignment.start,
-    //   //   children: [
-    //   //     CircleAvatar(
-    //   //       radius: 32,
-    //   //     ),
-    //   //   ],
-    //   // ),
-    // );
   }
 }

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 const Color primary = Color(0xFF0F9B0F);
+const Color secondary = Color(0xFFE5F5E8);
 
 class Styles {
-  final primaryFont = GoogleFonts.roboto;
   static Color primaryColor = primary;
+  static Color secondaryColor = secondary;
   static Color textColor = const Color(0xFF262626);
   static Color bgColor = const Color.fromARGB(255, 240, 240, 240);
   static Color orangeColor = const Color(0xFFF37B67);

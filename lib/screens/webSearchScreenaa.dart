@@ -2,6 +2,8 @@ import 'package:bookingapp/screens/filterScreen.dart';
 import 'package:bookingapp/services/databaseFunctions.dart';
 import 'package:bookingapp/routes/name_route.dart';
 import 'package:bookingapp/utils/debouncer.dart';
+import 'package:bookingapp/widgets/webFooter.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -11,28 +13,38 @@ import '../utils/appstyles.dart';
 import 'package:gap/gap.dart';
 import '../utils/filteringFunctions.dart';
 
-class SearchScreen extends StatefulWidget {
-  const SearchScreen({
+class webSearchScreen extends StatefulWidget {
+  Map<String, dynamic>? locationData;
+  String? date;
+  String? time;
+  webSearchScreen({
     super.key,
+    this.locationData,
+    this.date,
+    this.time,
   });
 
   @override
   _SearchScreenState createState() => _SearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> {
+class _SearchScreenState extends State<webSearchScreen> {
   TextEditingController editingController = TextEditingController();
   ScrollController scrollViewController = ScrollController();
   bool isVisible = false;
   bool isLoading = false;
   bool isLoadingFlag = false;
-  bool _buttonPressed = false;
+  bool _buttonPressed = true;
   bool isContainerPressed = false;
   List<Map<String, dynamic>> restaurants = [];
   List<Map<String, dynamic>> _allRestaurants = [];
   int _selectedDateIndex = 0;
   int _selectedTimeIndex = 0;
   int _selectedGuestsIndex = 0;
+  double lat = 0;
+  double lng = 0;
+  String name = '';
+  String postalCode = '';
   final debouncer = Debouncer(delay: const Duration(milliseconds: 200));
   final List<Map<String, dynamic>> _dateOptions = [];
   final List<Map<String, dynamic>> _dateOptionsEng = [];
@@ -91,8 +103,8 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   void initState() {
     if (mounted) {
-      loadLocationData();
       super.initState();
+      locationData();
       print('Init state of SearchScreen called.');
       final startDate = DateTime.now();
       final endDate = DateTime.now().add(const Duration(days: 31));
@@ -108,6 +120,8 @@ class _SearchScreenState extends State<SearchScreen> {
         });
       }
     }
+
+    print(widget.locationData);
   }
 
   @override
@@ -117,7 +131,7 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
-  Future<void> getFromFirebase(String postalCode, String nameLocation) async {
+  Future<void> getFromFirebase(String postalCode) async {
     if (mounted) {
       setState(() {
         isLoading = true;
@@ -125,26 +139,16 @@ class _SearchScreenState extends State<SearchScreen> {
     }
 
     try {
-      if (postalCode.isEmpty) {
-        List<Map<String, dynamic>> fetchedRestaurants =
-            await databaseFunctions.getFromFirebaseLocation(nameLocation);
-        if (mounted) {
-          setState(() {
-            restaurants = fetchedRestaurants;
-            _allRestaurants = List.from(restaurants);
-          });
-        }
-      } else {
-        final List<Map<String, dynamic>> fetchedRestaurants =
-            await databaseFunctions
-                .getFromFirebase(postalCode.replaceAll(' ', ''));
-        if (mounted) {
-          setState(() {
-            restaurants = fetchedRestaurants;
-            _allRestaurants = List.from(restaurants);
-          });
-        }
+      final List<Map<String, dynamic>> fetchedRestaurants =
+          await databaseFunctions
+              .getFromFirebase(postalCode.replaceAll(' ', ''));
+      if (mounted) {
+        setState(() {
+          restaurants = fetchedRestaurants;
+          _allRestaurants = List.from(restaurants);
+        });
       }
+      print(_allRestaurants);
     } catch (e) {
       print('Error fetching restaurants: $e');
       // Handle the error, show an error message, or retry
@@ -184,24 +188,6 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  Future<void> loadLocationData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String>? locationData = prefs.getStringList('selectedLocation');
-    if (locationData != null && locationData.length >= 4) {
-      selectedLocation = {
-        'name': locationData[0],
-        'formatted_address': locationData[1],
-        'lat': double.parse(locationData[2]),
-        'lng': double.parse(locationData[3]),
-        'postal_code': locationData[4],
-      };
-      getFromFirebase(locationData[4], locationData[0]);
-    } else {
-      // Handle the case where the data is not available or incomplete
-      print('Error: Could not retrieve location data from SharedPreferences');
-    }
-  }
-
   Future<void> showFilterScreenDialog(
       BuildContext context, List<Map<String, dynamic>> initialValues) async {
     List<Map<String, dynamic>>? returnedValues = await Navigator.push(
@@ -223,9 +209,8 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void _applyChanges() {
     print(_dateOptions[_selectedDateIndex]);
-    String dateString = _dateOptionsEng[_selectedDateIndex]
-        ["date"]; // Get the date string from the map
-    String day = extractDay(dateString); // Extract the day from the date string
+    String dateString = _dateOptionsEng[_selectedDateIndex]["date"];
+    String day = extractDay(dateString);
     print(_timeOptions[_selectedTimeIndex]);
     print(_guestsOptions[_selectedGuestsIndex]);
     updateRestaurants(filterRestaurants(
@@ -234,6 +219,32 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void handleSelection(List<Map<String, dynamic>> filteredRestaurants) {
     Navigator.pop(context, filteredRestaurants);
+  }
+
+  void locationData() async {
+    final Map<String, dynamic>? data = widget.locationData;
+    final List<dynamic> addressComponents = data!['address_components'];
+    print(data['address_components']);
+
+    for (var component in addressComponents) {
+      final List<dynamic> types = component['types'];
+      if (types.contains('postal_code')) {
+        postalCode = component['long_name'];
+        break;
+      }
+      print("postalCode:" + postalCode);
+    }
+
+    final Map<String, dynamic> geometry = data['geometry'];
+    final Map<String, dynamic> location = geometry['location'];
+    lat = location['lat'];
+    lng = location['lng'];
+    name = data['name'];
+    final String formattedAddress = data['formatted_address'];
+
+    getFromFirebase(postalCode);
+    print(
+        'Name: $name, Formatted Address: $formattedAddress, Latitude: $lat, Longitude: $lng, Postal Code: $postalCode');
   }
 
   void _skipChanges() {
@@ -258,7 +269,6 @@ class _SearchScreenState extends State<SearchScreen> {
           isContainerPressed = false;
           isLoadingFlag = true;
           _buttonPressed = false;
-          loadLocationData();
         });
       });
     }
@@ -270,49 +280,50 @@ class _SearchScreenState extends State<SearchScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            Visibility(
-              visible: !_buttonPressed,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextField(
-                      enabled: false,
-                      controller: editingController,
-                      decoration: InputDecoration(
-                        labelText: "Αναζήτηση...",
-                        prefixIcon: const Icon(Icons.search),
-                        border: OutlineInputBorder(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(25.0)),
-                          borderSide: BorderSide(
-                            color: Styles.primaryColor,
-                            width: 3.0,
+            if (!kIsWeb)
+              Visibility(
+                visible: !_buttonPressed,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextField(
+                        enabled: false,
+                        controller: editingController,
+                        decoration: InputDecoration(
+                          labelText: "Αναζήτηση...",
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(25.0)),
+                            borderSide: BorderSide(
+                              color: Styles.primaryColor,
+                              width: 3.0,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Align(
-                      alignment: Alignment.topLeft,
-                      child: ElevatedButton.icon(
-                        onPressed: null,
-                        icon: const Icon(Icons.filter_alt_rounded),
-                        label: const Text('Φίλτρα'),
-                        style: ElevatedButton.styleFrom(
-                          textStyle: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                    Container(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: ElevatedButton.icon(
+                          onPressed: null,
+                          icon: const Icon(Icons.filter_alt_rounded),
+                          label: const Text('Φίλτρα'),
+                          style: ElevatedButton.styleFrom(
+                            textStyle: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
             Expanded(
               child: Align(
                 alignment: Alignment.bottomCenter,
@@ -338,7 +349,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     Visibility(
                       visible: !_buttonPressed,
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           buildOptionListDates(
                             _dateOptions,
@@ -473,6 +484,13 @@ class _SearchScreenState extends State<SearchScreen> {
             },
             child: Container(
               color: Styles.primaryColor,
+              // decoration: BoxDecoration(
+              //   color: Styles.primaryColor,
+              //   border: Border.all(
+              //     color: Styles.primaryColor,
+              //     width: 2.0,
+              //   ),
+              // ),
               padding: const EdgeInsets.all(8.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -787,6 +805,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     },
                   ),
           ),
+          if (kIsWeb) webFooter(),
         ],
       ),
     );
@@ -815,11 +834,9 @@ class _SearchScreenState extends State<SearchScreen> {
                 });
 
                 if (scrollController.hasClients) {
-                  // Calculate the offset to scroll the selected item to the center
                   final offset = (index * 44) -
                       (scrollController.position.viewportDimension / 2) +
                       (4 / 2);
-                  // Scroll to the calculated offset with animation
                   scrollController.animateTo(offset,
                       duration: const Duration(milliseconds: 100),
                       curve: Curves.easeInOut);
@@ -879,11 +896,10 @@ class _SearchScreenState extends State<SearchScreen> {
                 });
 
                 if (scrollController.hasClients) {
-                  // Calculate the offset to scroll the selected item to the center
                   final offset = (index * 44) -
                       (scrollController.position.viewportDimension / 2) +
                       (4 / 2);
-                  // Scroll to the calculated offset with animation
+
                   scrollController.animateTo(offset,
                       duration: const Duration(milliseconds: 100),
                       curve: Curves.easeInOut);

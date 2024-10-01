@@ -1,26 +1,26 @@
 List<Map<String, dynamic>> circleBox = [
   {
-    'cuisine': "chinese",
-    'image': "chinese.png",
+    'cuisine': "Ελληνική",
+    'image': "Italian.png",
   },
   {
-    'cuisine': "salad",
+    'cuisine': "Ιταλική",
     'image': "salad.png",
   },
   {
-    'cuisine': "seafood",
+    'cuisine': "Γαλλική",
     'image': "seafood.png",
   },
   {
-    'cuisine': "chinese1",
+    'cuisine': "Κινέζικη",
     'image': "chinese1.png",
   },
   {
-    'cuisine': "salad1",
+    'cuisine': "Ιαπωνική",
     'image': "salad1.png",
   },
   {
-    'cuisine': "seafodd1",
+    'cuisine': "Μεξικάνικη",
     'image': "seafood1.png",
   },
 ];

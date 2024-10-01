@@ -1,4 +1,5 @@
 import 'package:bookingapp/routes/name_route.dart';
+import 'package:bookingapp/utils/loginTranslationMap.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:bookingapp/services/auth_service.dart';
@@ -28,8 +29,6 @@ class _login_screenState extends State<loginScreen> {
   }
 
   void signUserIn() async {
-    // show loading circle
-
     showDialog(
         context: context,
         builder: (context) {
@@ -40,54 +39,43 @@ class _login_screenState extends State<loginScreen> {
     try {
       final UserCredential authResult =
           await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text,
-        password: passwordController.text,
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
       );
-      //pop the loading circle
-      // Get the signed-in user
+
       final User? user = authResult.user;
 
       if (user != null) {
         context.goNamed(navigationHubNameRoute);
       } else {
-        print('Email and Password Sign-In failed.');
+        _showErrorDialog('Η σύνδεση απέτυχε. Παρακαλώ προσπαθήστε ξανά.');
       }
     } on FirebaseAuthException catch (e) {
       Navigator.pop(context);
-      // Handle FirebaseAuthException
+
       print('FirebaseAuthException: ${e.message}');
 
-      // You can customize the error handling based on the exception type
-      if (e.code == 'user-not-found') {
-        print('User not found. Please check your email.');
-      } else if (e.code == 'wrong-password') {
-        print('Wrong password. Please try again.');
-      } else {
-        // Handle other cases as needed
-        print('An error occurred while signing in: ${e.message}');
-      }
-    } on PlatformException catch (e) {
-      // Handle PlatformException
-      print('PlatformException: ${e.message}');
+      String errorMessage = firebaseErrorMessagesInGreek[e.code] ??
+          'Προέκυψε ένα σφάλμα: ${e.message}';
 
-      // You can customize the error handling based on the platform exception
-      // Common cases include network issues, device offline, etc.
+      _showErrorDialog(errorMessage);
+    } on PlatformException catch (e) {
     } catch (e) {
-      // Handle other exceptions (not FirebaseAuthException)
-      print('An unexpected error occurred: $e');
+      _showErrorDialog('Προέκυψε ένα απρόσμενο σφάλμα: $e');
     }
   }
 
-  void genericErrorMessage(String message) {
+  void _showErrorDialog(String message) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(message),
+          backgroundColor: Styles.secondaryColor,
+          content: Text(message),
           actions: [
-            TextButton(
+            ElevatedButton(
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.of(context).pop();
               },
               child: const Text('OK'),
             ),
@@ -109,19 +97,23 @@ class _login_screenState extends State<loginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 50),
-                //logo
+
                 const Icon(Icons.lock_person,
                     size: 150, color: Color(0xFF0F9B0F)),
                 const SizedBox(height: 10),
-                //welcome back you been missed
-
-                Text(
-                  'Εισαγάγετε τα διαπιστευτήριά σας για να συνεχίσετε.',
-                  style: TextStyle(
-                    color: Colors.grey[700],
-                    fontSize: 15,
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 66.0),
+                    child: Text(
+                      'Εισαγάγετε τα διαπιστευτήριά σας για να συνεχίσετε.',
+                      style: TextStyle(
+                        color: Colors.grey[700],
+                        fontSize: 15,
+                      ),
+                    ),
                   ),
                 ),
+
                 const SizedBox(height: 25),
 
                 //username
@@ -146,8 +138,6 @@ class _login_screenState extends State<loginScreen> {
                   text: 'Σύνδεση',
                 ),
                 const SizedBox(height: 20),
-
-                //forgot passowrd
 
                 Padding(
                   padding: const EdgeInsets.all(5.0),
@@ -202,9 +192,7 @@ class _login_screenState extends State<loginScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 60),
-
-                //google + apple button
+                const SizedBox(height: 40),
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -218,10 +206,8 @@ class _login_screenState extends State<loginScreen> {
                   ],
                 ),
                 const SizedBox(
-                  height: 100,
+                  height: 70,
                 ),
-
-                // not a memeber ? register now
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

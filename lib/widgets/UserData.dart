@@ -5,7 +5,8 @@ class UserData extends InheritedWidget {
   final List<Map<String, dynamic>> restaurants;
   final String profilePicUrl;
 
-  const UserData({super.key, 
+  const UserData({
+    super.key,
     required super.child,
     required this.userId,
     required this.restaurants,

@@ -7,6 +7,7 @@ import 'package:bookingapp/utils/AppStyles.dart';
 import 'package:bookingapp/widgets/UserData.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -35,17 +36,22 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     loadLocationData();
-    print('Init state of HomeScreen called.');
     if (mounted) {
       super.initState();
     }
   }
 
-  Future<void> getDatabaseData(String postalCode) async {
-    restaurants =
-        await databaseFunctions.getFromFirebase(postalCode.replaceAll(' ', ''));
-    if (mounted) {
+  Future<void> getDatabaseData(String postalCode, String nameLocation) async {
+    if (postalCode.isEmpty) {
+      restaurants =
+          await databaseFunctions.getFromFirebaseLocation(nameLocation);
       setState(() {});
+    } else {
+      restaurants = await databaseFunctions
+          .getFromFirebase(postalCode.replaceAll(' ', ''));
+      if (mounted) {
+        setState(() {});
+      }
     }
   }
 
@@ -74,16 +80,15 @@ class _HomeScreenState extends State<HomeScreen> {
       };
       isLocationSelected = true;
       homeInputFlag = true;
-      print("postal code to getdata:");
-      getDatabaseData(locationData[4]);
-    } else {
-      // Handle the case where the data is not available or incomplete
-      print('Error: Could not retrieve location data from SharedPreferences');
-    }
+      getDatabaseData(locationData[4], locationData[0]);
+    } else {}
   }
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.white,
+    ));
     return UserData(
       userId: user!.uid,
       restaurants: restaurants,
@@ -93,6 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: SafeArea(
           child: Scaffold(
             backgroundColor: Colors.white,
+            drawerScrimColor: Colors.white,
             body: ListView(
               children: [
                 Container(
@@ -106,74 +112,58 @@ class _HomeScreenState extends State<HomeScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: Styles.primaryColor,
-                                    width: 2.0,
+                              Row(children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Styles.primaryColor,
+                                      width: 2.0,
+                                    ),
+                                  ),
+                                  padding: const EdgeInsets.all(3.0),
+                                  child: Row(
+                                    children: [
+                                      IconButton(
+                                        iconSize: 30,
+                                        icon: Icon(Icons.location_on,
+                                            color: Styles.primaryColor),
+                                        onPressed: () {},
+                                      ),
+                                      Text(
+                                        selectedLocation.isNotEmpty
+                                            ? '${selectedLocation['formatted_address']!}'
+                                            : 'Παρακαλώ επιλέξτε πρώτα τοποθεσία',
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                padding: const EdgeInsets.all(3.0),
-                                child: Row(
-                                  children: [
-                                    IconButton(
-                                      iconSize: 30,
-                                      icon: Icon(Icons.location_on,
-                                          color: Styles
-                                              .primaryColor), // Change location icon
-                                      onPressed: () async {
-                                        final selectedLocation =
-                                            await context.pushNamed(
-                                                    locationSearchScreenNameRoute)
-                                                as Map<String, Object>?;
+                                IconButton(
+                                  iconSize: 30,
+                                  icon: Icon(Icons.change_circle_outlined,
+                                      color: Styles.primaryColor),
+                                  onPressed: () async {
+                                    final selectedLocation =
+                                        await context.pushNamed(
+                                                locationSearchScreenNameRoute)
+                                            as Map<String, Object>?;
 
-                                        if (selectedLocation != null) {
-                                          print('selected location name :');
-                                          print(selectedLocation['name']);
-                                          setState(() {
-                                            isLocationSelected = true;
-                                            homeInputFlag = true;
-                                            setLocationData(selectedLocation);
-                                          });
-                                          loadLocationData();
-                                        }
-                                      },
-                                    ),
-                                    Text(
-                                      selectedLocation.isNotEmpty
-                                          ? '${selectedLocation['formatted_address']!}'
-                                          : 'Παρακαλώ επιλέξτε πρώτα τοποθεσία',
-                                      // style: Styles.headLineStyle1,
-                                    ),
-                                  ],
+                                    if (selectedLocation != null) {
+                                      setState(() {
+                                        isLocationSelected = true;
+                                        homeInputFlag = true;
+                                        setLocationData(selectedLocation);
+                                      });
+                                      loadLocationData();
+                                    }
+                                  },
                                 ),
-                              ),
+                              ]),
                               Text(
                                 'Κάνε κράτηση',
                                 style: Styles.headLineStyle1,
                               ),
                             ],
                           ),
-                          // CircleAvatar(
-                          //   radius: 40,
-                          //   backgroundColor: Styles.primaryColor,
-                          //   backgroundImage: profilePicUrl.isNotEmpty
-                          //       ? NetworkImage(profilePicUrl)
-                          //       : null,
-                          //   child: profilePicUrl == ''
-                          //       ? const Icon(Icons.person, size: 45)
-                          //       : null,
-                          // ),
-                          // Container(
-                          //   width: 70,
-                          //   height: 70,
-                          //   decoration: BoxDecoration(
-                          //     borderRadius: BorderRadius.circular(10),
-                          //     image: DecorationImage(
-                          //         fit: BoxFit.cover,
-                          //         image: NetworkImage(profilePicUrl)),
-                          //   ),
-                          // ),
                         ],
                       ),
                       if (isLocationSelected) const Gap(25),
@@ -186,13 +176,17 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: TextField(
-                                  onChanged: (_) {
-                                    context.pushNamed(
-                                      homeSearchNameRoute,
-                                    );
+                                  onSubmitted: (_) {
+                                    context.pushNamed(homeSearchNameRoute,
+                                        queryParameters: {
+                                          'filterFlag': 'false',
+                                        });
                                   },
                                   onTap: () {
-                                    context.pushNamed(homeSearchNameRoute);
+                                    context.pushNamed(homeSearchNameRoute,
+                                        queryParameters: {
+                                          'filterFlag': 'false',
+                                        });
                                   },
                                   decoration: InputDecoration(
                                       enabled: homeInputFlag,
@@ -217,7 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Container(
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: Colors.black,
+                            color: Styles.primaryColor,
                             width: 2.0,
                           ),
                         ),
@@ -257,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: const AppDoubleTextWidget(
-                          bigText: 'Κοντινά',
+                          bigText: 'Πλησιέστερα',
                           smallText: 'Προβολή όλων',
                         ),
                       ),
@@ -276,7 +270,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: const AppDoubleTextWidget(
-                          bigText: 'Προτεινόμενα μέρη',
+                          bigText: 'Δημοφιλή εστιατόρια',
                           smallText: 'Προβολή όλων',
                         ),
                       ),

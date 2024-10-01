@@ -1,4 +1,6 @@
+import 'package:bookingapp/screens/webHomeScreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:bookingapp/screens/loginScreen.dart';
 import 'package:bookingapp/screens/navigationHub.dart';
@@ -15,10 +17,17 @@ class authGate extends StatelessWidget {
         builder: (context, snapshot) {
           // User is not signed in
           if (!snapshot.hasData) {
-            return const loginScreen();
+            if (kIsWeb) {
+              return const WebHomeScreen();
+            } else {
+              return const loginScreen();
+            }
           }
-          // Render your application if authenticated
-          return const navigationHub();
+          if (kIsWeb) {
+            return const WebHomeScreen();
+          } else {
+            return const navigationHub();
+          }
         });
   }
 }

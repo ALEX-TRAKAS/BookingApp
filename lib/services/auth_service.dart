@@ -82,19 +82,70 @@ class Authentication {
     context.go(authRoute);
   }
 
+  // static Future<void> signOutFromGoogle(BuildContext context) async {
+  //   final GoogleSignIn googleSignIn = GoogleSignIn();
+
+  //   try {
+  //     if (!kIsWeb) {
+  //       await googleSignIn.signOut();
+  //     } else {
+  //       // For web, ensure proper initialization and sign out
+  //       await googleSignIn.disconnect();
+  //     }
+
+  //     await FirebaseAuth.instance.signOut();
+  //   } catch (e) {}
+
+  //   if (kIsWeb) {
+  //     context.go(authNameRoute);
+  //   } else {
+  //     context.go(loginRoute);
+  //   }
+  // }
+  // static Future<void> signOutFromGoogle(BuildContext context) async {
+  //   final GoogleSignIn googleSignIn = GoogleSignIn();
+  //   try {
+  //     if (!kIsWeb) {
+  //       await googleSignIn.signOut();
+  //     }
+  //     await FirebaseAuth.instance.signOut();
+  //   } catch (e) {
+  //     Authentication.customSnackBar(
+  //       content: 'Error signing out. Try again.',
+  //     );
+  //   }
+  //   if (kIsWeb) {
+  //     context.goNamed(webHomeScreenNameRoute);
+  //   } else {
+  //     context.go(loginRoute);
+  //   }
+  // }
+
   static Future<void> signOutFromGoogle(BuildContext context) async {
-    final GoogleSignIn googleSignIn = GoogleSignIn();
+    final GoogleSignIn googleSignIn = GoogleSignIn(
+      clientId: kIsWeb ? 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com' : null,
+    );
+
     try {
       if (!kIsWeb) {
+        // Sign out from Google on mobile platforms
         await googleSignIn.signOut();
       }
+      // Sign out from Firebase for all platforms
       await FirebaseAuth.instance.signOut();
     } catch (e) {
+      // Handle error, e.g., show a snackbar or error message
       Authentication.customSnackBar(
         content: 'Error signing out. Try again.',
       );
     }
-    context.go(loginRoute);
+
+    // Redirect based on the platform (web or mobile)
+    if (kIsWeb) {
+      context.goNamed(webHomeScreenNameRoute); // Adjust the route accordingly
+    } else {
+      context.go(loginRoute);
+    }
   }
 
   static Future<void> signOut({required BuildContext context}) async {

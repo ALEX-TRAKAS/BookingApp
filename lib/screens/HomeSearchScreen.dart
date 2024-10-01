@@ -11,16 +11,18 @@ import '../utils/appstyles.dart';
 import 'package:gap/gap.dart';
 import '../utils/filteringFunctions.dart';
 
-class SearchScreen extends StatefulWidget {
-  const SearchScreen({
-    super.key,
-  });
+class HomeSearchScreen extends StatefulWidget {
+  String? filterType;
+  final String? cuisine;
+
+  HomeSearchScreen(
+      {super.key, required this.cuisine, required this.filterType});
 
   @override
-  _SearchScreenState createState() => _SearchScreenState();
+  HomeSearchScreenState createState() => HomeSearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> {
+class HomeSearchScreenState extends State<HomeSearchScreen> {
   TextEditingController editingController = TextEditingController();
   ScrollController scrollViewController = ScrollController();
   bool isVisible = false;
@@ -87,6 +89,16 @@ class _SearchScreenState extends State<SearchScreen> {
   final List<String> _guestsOptions =
       List.generate(9, (index) => '${index + 1} άτομα');
   Map<String, Object> selectedLocation = {};
+  List<String> listedCuisines = [
+    'Italian',
+    'French',
+    'Japanese',
+    'Mexican',
+    'Indian',
+    'Chinese',
+  ];
+  late double? lat;
+  late double? lng;
 
   @override
   void initState() {
@@ -196,6 +208,8 @@ class _SearchScreenState extends State<SearchScreen> {
         'postal_code': locationData[4],
       };
       getFromFirebase(locationData[4], locationData[0]);
+      lat = double.tryParse(locationData[2]);
+      lng = double.tryParse(locationData[3]);
     } else {
       // Handle the case where the data is not available or incomplete
       print('Error: Could not retrieve location data from SharedPreferences');
@@ -218,18 +232,46 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void removeFilters() {
-    updateRestaurants(_allRestaurants);
+    updateRestaurants(
+      _allRestaurants,
+    );
   }
 
   void _applyChanges() {
     print(_dateOptions[_selectedDateIndex]);
-    String dateString = _dateOptionsEng[_selectedDateIndex]
-        ["date"]; // Get the date string from the map
-    String day = extractDay(dateString); // Extract the day from the date string
+    String dateString = _dateOptionsEng[_selectedDateIndex]["date"];
+    String day = extractDay(dateString);
     print(_timeOptions[_selectedTimeIndex]);
     print(_guestsOptions[_selectedGuestsIndex]);
-    updateRestaurants(filterRestaurants(
-        day, _timeOptions[_selectedTimeIndex], _allRestaurants));
+
+    switch (widget.filterType) {
+      case 'Δημοφιλή εστιατόρια':
+        updateRestaurants(filterRestaurantsByRating(
+            filterRestaurants(
+                day, _timeOptions[_selectedTimeIndex], _allRestaurants),
+            3.0));
+        break;
+      case 'Πλησιέστερα':
+        updateRestaurants(filterRestaurantsByDistance(
+            filterRestaurants(
+                day, _timeOptions[_selectedTimeIndex], _allRestaurants),
+            lat!,
+            lng!,
+            50.0));
+        break;
+    }
+
+    if (widget.cuisine != null) {
+      updateRestaurants(filterRestaurantsByCuisines(
+          filterRestaurants(
+              day, _timeOptions[_selectedTimeIndex], _allRestaurants),
+          widget.cuisine));
+    } else {
+      updateRestaurants(
+        filterRestaurants(
+            day, _timeOptions[_selectedTimeIndex], _allRestaurants),
+      );
+    }
   }
 
   void handleSelection(List<Map<String, dynamic>> filteredRestaurants) {
@@ -240,7 +282,24 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() {
       _buttonPressed = !_buttonPressed;
     });
-    updateRestaurants(_allRestaurants);
+    switch (widget.filterType) {
+      case 'Δημοφιλή εστιατόρια':
+        updateRestaurants(filterRestaurantsByRating(_allRestaurants, 3.0));
+        break;
+      case 'Πλησιέστερα':
+        updateRestaurants(
+            filterRestaurantsByDistance(_allRestaurants, lat!, lng!, 50.0));
+        break;
+    }
+
+    if (widget.cuisine != null) {
+      updateRestaurants(
+          filterRestaurantsByCuisines(_allRestaurants, widget.cuisine));
+    } else {
+      updateRestaurants(
+        _allRestaurants,
+      );
+    }
   }
 
   void handleContainerPress() {
@@ -266,12 +325,12 @@ class _SearchScreenState extends State<SearchScreen> {
     isLoadingFlag = true;
     return Scaffold(
       backgroundColor: Colors.white,
-      drawerScrimColor: Colors.white,
+      appBar: AppBar(backgroundColor: Colors.white),
       body: SafeArea(
         child: Column(
           children: [
             Visibility(
-              visible: !_buttonPressed,
+              visible: !_buttonPressed, // Hide when button pressed
               child: Column(
                 children: [
                   Padding(
@@ -336,9 +395,9 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                     ),
                     Visibility(
-                      visible: !_buttonPressed,
+                      visible: !_buttonPressed, // Hide when button pressed
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           buildOptionListDates(
                             _dateOptions,
@@ -363,7 +422,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                     ),
                     Visibility(
-                      visible: _buttonPressed,
+                      visible: _buttonPressed, // Show when button pressed
                       child: buildFilteredList(context),
                     ),
                     const Gap(20),
@@ -657,7 +716,6 @@ class _SearchScreenState extends State<SearchScreen> {
                           );
                         },
                         child: Container(
-                          // width: size.width * 1.0,
                           height: 200,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,

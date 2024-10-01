@@ -1,28 +1,22 @@
+// ignore_for_file: empty_catches
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class databaseFunctions {
-  static Future<Map<String, dynamic>?> getUserData(String userId) async {
+  Future<Map<String, dynamic>?> getUserData(String userId) async {
     try {
-      // Reference to the user document in the "users" collection
       DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
           .get();
 
-      // Check if the document exists
       if (userSnapshot.exists) {
-        // Convert the document snapshot data to a Map
         Map<String, dynamic> data = userSnapshot.data() as Map<String, dynamic>;
-
         return data;
       } else {
-        // User document not found
-        print('User not found in Firestore');
         return null;
       }
     } catch (e) {
-      // Handle errors
-      print('Error retrieving user data: $e');
       return null;
     }
   }
@@ -32,6 +26,32 @@ class databaseFunctions {
         .collection("restaurants")
         .where('Location.postalCode', isEqualTo: postalCode)
         .get();
+
+    return result.docs
+        .map((e) => {
+              'id': e.id,
+              ...e.data(),
+            })
+        .toList();
+  }
+
+  static Future getFromFirebaseLocation(String locationName) async {
+    final result = await FirebaseFirestore.instance
+        .collection("restaurants")
+        .where('Location.city', isEqualTo: locationName)
+        .get();
+
+    return result.docs
+        .map((e) => {
+              'id': e.id,
+              ...e.data(),
+            })
+        .toList();
+  }
+
+  static Future getFromFirebaseAll() async {
+    final result =
+        await FirebaseFirestore.instance.collection("restaurants").get();
 
     return result.docs
         .map((e) => {
@@ -74,7 +94,8 @@ class databaseFunctions {
     required String contactPhoneNumber,
     required String contactEmail,
     required String userID,
-    required String restaurantID,
+    required String? restaurantID,
+    required String restaurantName,
     required String reservationStatus,
     required Timestamp? creationTimestamp,
     required Timestamp? lastUpdatedTimestamp,
@@ -92,28 +113,67 @@ class databaseFunctions {
         'contactEmail': contactEmail,
         'userID': userID,
         'restaurantID': restaurantID,
+        'restaurantName': restaurantName,
         'reservationStatus': reservationStatus,
         'creationTimestamp': creationTimestamp,
         'lastUpdatedTimestamp': lastUpdatedTimestamp
       });
-    } catch (e) {
-      // Handle errors
-      print('Error creating reservation: $e');
-    }
+    } catch (e) {}
   }
 
   Future<void> updateReservationStatus(
       String userId, String reservationId, String newStatus) async {
     try {
-      await FirebaseFirestore.instance
+      DocumentReference reservationDoc = FirebaseFirestore.instance
           .collection('reservations')
-          .doc(userId)
-          .collection('userReservations')
-          .doc(reservationId)
-          .update({'reservationStatus': newStatus});
+          .doc(reservationId);
+
+      final docSnapshot = await reservationDoc.get();
+      if (docSnapshot.exists) {
+        await reservationDoc.update({'reservationStatus': newStatus});
+      }
+    } catch (e) {}
+  }
+
+  // Future<void> updateReservationStatus(
+  //     String userId, String reservationId, String newStatus) async {
+  //   try {
+  //     await FirebaseFirestore.instance
+  //         .collection('reservations')
+  //         .doc(userId)
+  //         .collection('userReservations')
+  //         .doc(reservationId)
+  //         .update({'reservationStatus': newStatus});
+  //   } catch (e) {
+  //     print('Error updating reservation status: $e');
+  //     // Handle the error, show an error message, or retry
+  //   }
+  // }
+
+  Future<List<Map<String, dynamic>>> getAllReservationsToday(
+      String userId) async {
+    try {
+      DateTime now = DateTime.now();
+      DateTime startOfDay = DateTime(now.year, now.month, now.day);
+      DateTime endOfDay =
+          startOfDay.add(Duration(days: 1)).subtract(Duration(milliseconds: 1));
+
+      final QuerySnapshot reservationSnapshot = await FirebaseFirestore.instance
+          .collection('reservations')
+          .where('userID', isEqualTo: userId)
+          .where('creationTimestamp',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+          .where('creationTimestamp',
+              isLessThanOrEqualTo: Timestamp.fromDate(endOfDay))
+          .orderBy('creationTimestamp', descending: true)
+          .get();
+
+      return reservationSnapshot.docs.map((doc) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        return {'id': doc.id, ...data};
+      }).toList();
     } catch (e) {
-      print('Error updating reservation status: $e');
-      // Handle the error, show an error message, or retry
+      return [];
     }
   }
 
@@ -122,45 +182,41 @@ class databaseFunctions {
       final QuerySnapshot reservationSnapshot = await FirebaseFirestore.instance
           .collection('reservations')
           .where('userID', isEqualTo: userId)
+          .orderBy('creationTimestamp', descending: true)
           .get();
 
       return reservationSnapshot.docs.map((doc) {
         final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        return {'id': doc.id, ...data}; // Include the document ID
+        return {'id': doc.id, ...data};
       }).toList();
     } catch (e) {
-      print('Error getting reservations: $e');
       return [];
     }
   }
 
-  // Future<List<Map<String, dynamic>>> getAllReservations(String userId) async {
-  //   try {
-  //     final QuerySnapshot reservationSnapshot = await FirebaseFirestore.instance
-  //         .collection('reservations')
-  //         .doc(userId)
-  //         .collection('userReservations')
-  //         .get();
+  Future<List<Map<String, dynamic>>> getAllReservationseExceptToday(
+      String userId) async {
+    try {
+      DateTime now = DateTime.now();
+      DateTime startOfDay = DateTime(now.year, now.month, now.day);
 
-  //     return reservationSnapshot.docs.map((doc) {
-  //       return {
-  //         'reservationId': doc.id,
-  //         'creationTimestamp': doc['creationTimestamp'],
-  //         'extraContactInformation': doc['extraContactInformation'],
-  //         'lastUpdatedTimestamp': doc['lastUpdatedTimestamp'],
-  //         'numberOfGuests': doc['numberOfGuests'],
-  //         'reservationDateAndTime': doc['reservationDateAndTime'],
-  //         'reservationStatus': doc['reservationStatus'],
-  //         'restaurantID': doc['restaurantID'],
-  //         'specialRequests': doc['specialRequests'],
-  //         'userID': doc['userID'],
-  //       };
-  //     }).toList();
-  //   } catch (e) {
-  //     print('Error getting reservations: $e');
-  //     return [];
-  //   }
-  // }
+      final QuerySnapshot reservationsBeforeTodaySnapshot =
+          await FirebaseFirestore.instance
+              .collection('reservations')
+              .where('userID', isEqualTo: userId)
+              .where('creationTimestamp',
+                  isLessThan: Timestamp.fromDate(startOfDay))
+              .orderBy('creationTimestamp', descending: true)
+              .get();
+
+      return reservationsBeforeTodaySnapshot.docs.map((doc) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        return {'id': doc.id, ...data};
+      }).toList();
+    } catch (e) {
+      return [];
+    }
+  }
 
   void addRestaurant() async {
     // Create a reference to the Firestore collection
@@ -240,7 +296,8 @@ class databaseFunctions {
     print('Restaurant added successfully!');
   }
 
-  Future<void> getRestaurantDataSecond(String restaurantId) async {
+  Future<Map<String, dynamic>> getRestaurantDataSecond(
+      String? restaurantId) async {
     try {
       DocumentSnapshot restaurantSnapshot = await FirebaseFirestore.instance
           .collection('restaurants')
@@ -253,18 +310,18 @@ class databaseFunctions {
         Map<String, dynamic> data =
             restaurantSnapshot.data() as Map<String, dynamic>;
 
-        // Print the retrieved data
-        print('Restaurant Data:');
-        data.forEach((key, value) {
-          print('$key: $value');
-        });
+        return data;
       } else {
         // Restaurant document not found
         print('Restaurant not found in Firestore');
+        // Return an empty map if the restaurant is not found
+        return {};
       }
     } catch (e) {
       // Handle errors
       print('Error retrieving restaurant data: $e');
+      // Return an empty map if an error occurs
+      return {};
     }
   }
 
@@ -318,15 +375,13 @@ class databaseFunctions {
     try {
       await FirebaseFirestore.instance
           .collection('favorites')
-          .doc(userId) // Use user ID as the document ID
+          .doc(userId) // Using user ID as the document ID
           .set({
         'userFavorites': {
           restaurantId: {'isFavorite': true},
         },
-      }, SetOptions(merge: true)); // Use merge to update existing data
-    } catch (e) {
-      print('Error adding favorite restaurant: $e');
-    }
+      }, SetOptions(merge: true)); // Using merge to update existing data
+    } catch (e) {}
   }
 
   Future<void> removeFavoriteRestaurant(
@@ -338,9 +393,7 @@ class databaseFunctions {
           .update({
         'userFavorites.$restaurantId': FieldValue.delete(),
       });
-    } catch (e) {
-      print('Error removing favorite restaurant: $e');
-    }
+    } catch (e) {}
   }
 
   Future<bool> isFavoriteRestaurant(String userId, String restaurantId) async {
@@ -361,10 +414,8 @@ class databaseFunctions {
             userFavorites[restaurantId]?['isFavorite'] == true;
         return isFavorite;
       }
-
       return false;
     } catch (e) {
-      print('Error checking favorite restaurant: $e');
       return false;
     }
   }
@@ -384,13 +435,11 @@ class databaseFunctions {
             (userData?['userFavorites'] as Map<String, dynamic>?) ?? {};
 
         List<String> favorites = userFavorites.keys.toList();
-        print(favorites);
+
         return favorites;
       }
-
       return [];
     } catch (e) {
-      print('Error getting favorite restaurants: $e');
       return [];
     }
   }
@@ -424,12 +473,29 @@ class databaseFunctions {
           }
         }
       }
-
-      print('All Favorite Restaurant Data: $allFavoriteRestaurantData');
       return allFavoriteRestaurantData;
     } catch (e) {
-      print('Error getting favorite restaurants: $e');
       return [];
     }
+  }
+
+  static Future<Map<String, dynamic>> filteredAscending(
+      String postalCode) async {
+    final result = await FirebaseFirestore.instance
+        .collection("restaurants")
+        .where('Location.postalCode', isEqualTo: postalCode)
+        .orderBy('avgPrice', descending: false)
+        .get();
+
+    final List<Map<String, dynamic>> restaurants = result.docs
+        .map((e) => {
+              'id': e.id, //  document ID
+              ...e.data(), //  document data
+            })
+        .toList();
+
+    final int count = result.size;
+
+    return {'restaurants': restaurants, 'count': count};
   }
 }

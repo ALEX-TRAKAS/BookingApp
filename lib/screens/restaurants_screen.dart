@@ -15,7 +15,7 @@ class restaurantsTile extends StatelessWidget {
     final size = AppLayout.getSize(context);
     return InkWell(
       onTap: () {
-        //route to detailed restaurant screen pushing with the restaurant id or name???
+        //route to detailed restaurant screen pushing with the restaurant id
         context.pushNamed(restaurantsDetailedScreenNameRoute,
             queryParameters: {'restaurantId': restaurant['id'].toString()});
       },
@@ -39,10 +39,6 @@ class restaurantsTile extends StatelessWidget {
             right: BorderSide(
                 color: Color(0xFF0F9B0F), width: 0.1, style: BorderStyle.solid),
           ),
-          // boxShadow: [
-          //   BoxShadow(
-          //       color: Colors.grey.shade200, blurRadius: 20, spreadRadius: 5),
-          // ]
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,10 +49,9 @@ class restaurantsTile extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 color: Styles.primaryColor,
-                // image: DecorationImage(
-                //     fit: BoxFit.cover,
-                //     image: NetworkImage(restaurant['mainPhoto'].toString())
-                //     ),
+                image: DecorationImage(
+                    fit: BoxFit.cover,
+                    image: NetworkImage(restaurant['mainPhoto'])),
               ),
             ),
             const Gap(10),
@@ -68,9 +63,9 @@ class restaurantsTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Icon(
-                  Icons.location_on_sharp, // Choose your desired icon
-                  size: 25.0, // Adjust the size of the icon
-                  color: Color(0xFF0F9B0F), // Adjust the color of the icon
+                  Icons.location_on_sharp,
+                  size: 25.0,
+                  color: Color(0xFF0F9B0F),
                 ),
                 Text(
                   restaurant['Location']['city'],
@@ -80,28 +75,38 @@ class restaurantsTile extends StatelessWidget {
               ],
             ),
             const Gap(5),
-            RatingBar.builder(
-              initialRating: 3,
-              minRating: 1,
-              direction: Axis.horizontal,
-              allowHalfRating: true,
-              itemCount: 5,
-              itemSize: 25.0,
-              itemPadding: const EdgeInsets.symmetric(horizontal: 1.0),
-              itemBuilder: (context, _) => const Icon(
-                Icons.star,
-                color: Color(0xFF0F9B0F),
-              ),
-              onRatingUpdate: (rating) {
-                print(rating);
-              },
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                RatingBar.builder(
+                  initialRating: (restaurant['rating'] as num).toDouble(),
+                  minRating: 1,
+                  direction: Axis.horizontal,
+                  allowHalfRating: true,
+                  itemCount: 5,
+                  itemSize: 25.0,
+                  itemPadding: const EdgeInsets.symmetric(horizontal: 1.0),
+                  itemBuilder: (context, _) => const Icon(
+                    Icons.star,
+                    color: Color(0xFF0F9B0F),
+                  ),
+                  ignoreGestures: true,
+                  onRatingUpdate: (double value) {},
+                ),
+                const Gap(2),
+                Text(
+                  '(${(restaurant['rating'] as num).toDouble().toString()})',
+                  style:
+                      Styles.headLineStyle2.copyWith(color: Styles.textColor),
+                ),
+              ],
             ),
             const Gap(5),
             Text(
               restaurant['cuisine'],
               style: Styles.headLineStyle3.copyWith(color: Styles.textColor),
             ),
-            const Gap(8),
+            const Gap(5),
             Text(
               restaurant['avgPrice'] + '€',
               style: Styles.headLineStyle1.copyWith(color: Styles.textColor),

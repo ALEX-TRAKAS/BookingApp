@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 class CircleIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onPressed;
-  final Color backgroundColor; // Add this line
+  final Color backgroundColor;
 
   const CircleIconButton({
     super.key,
     required this.icon,
     required this.onPressed,
     this.backgroundColor = Colors.grey,
-    required MaterialColor iconColor, // Set a default color or modify as needed
+    required MaterialColor iconColor,
   });
 
   @override
@@ -20,7 +20,7 @@ class CircleIconButton extends StatelessWidget {
       height: 55,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: backgroundColor, // Set the background color here
+        color: backgroundColor,
       ),
       child: IconButton(
         icon: Icon(icon),
@@ -28,13 +28,12 @@ class CircleIconButton extends StatelessWidget {
         iconSize: 30.0,
         splashRadius: 24.0,
         padding: const EdgeInsets.all(0.0),
-        color: Colors.white, // Set the icon color here
+        color: Colors.white,
         tooltip: 'Open menu',
         splashColor: Colors.transparent,
         highlightColor: Colors.transparent,
         focusColor: Colors.transparent,
         hoverColor: Colors.transparent,
-        // You can customize other properties as needed
       ),
     );
   }

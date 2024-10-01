@@ -271,8 +271,8 @@ class _ReservationScreenState extends State<ReservationScreen> {
       double contWidth) {
     ScrollController scrollController = ScrollController();
     return SizedBox(
-      height: contHeight, // Set the desired height here
-      width: contWidth, // Set the width to fill the available space
+      height: contHeight,
+      width: contWidth,
       child: ListView.builder(
         controller: scrollController,
         itemCount: options.length,
@@ -333,8 +333,8 @@ class _ReservationScreenState extends State<ReservationScreen> {
       int selectedIndex, void Function(int) onOptionSelected) {
     ScrollController scrollController = ScrollController();
     return SizedBox(
-      height: 200, // Set the desired height here
-      width: 150, // Set the width to fill the available space
+      height: 200,
+      width: 150,
       child: ListView.builder(
         controller: scrollController,
         itemCount: options.length,
@@ -364,7 +364,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
                     color: index == selectedIndex
                         ? Styles.primaryColor
                         : Colors.transparent,
-                    width: 2.0, // Adjust the border width as needed
+                    width: 2.0,
                   ),
                 ),
               ),
@@ -374,8 +374,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
               ),
               child: Center(
                 child: Text(
-                  optionValue
-                      .toString(), // Change this based on your data structure
+                  optionValue.toString(),
                   style: TextStyle(
                     color: index == selectedIndex ? Colors.black : Colors.black,
                     fontSize: 18.0,

@@ -1,61 +1,61 @@
-import 'package:flutter/material.dart';
-import '../utils/AppLayout.dart';
+// import 'package:flutter/material.dart';
+// import '../utils/AppLayout.dart';
 
-class AppTicketTabs extends StatelessWidget {
-  final String firstTab;
-  final String secondTab;
-  const AppTicketTabs(
-      {super.key, required this.firstTab, required this.secondTab});
+// class AppTicketTabs extends StatelessWidget {
+//   final String firstTab;
+//   final String secondTab;
+//   const AppTicketTabs(
+//       {super.key, required this.firstTab, required this.secondTab});
 
-  @override
-  Widget build(BuildContext context) {
-    final size = AppLayout.getSize(context);
+//   @override
+//   Widget build(BuildContext context) {
+//     final size = AppLayout.getSize(context);
 
-    return FittedBox(
-      child: Container(
-        padding: const EdgeInsets.all(3.5),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppLayout.getHeight(context, 50)),
-          color: Colors.grey.shade300,
-        ),
-        child: Row(
-          children: [
-            //airline tickets
-            Container(
-              padding: EdgeInsets.symmetric(
-                  vertical: AppLayout.getHeight(context, 7)),
-              width: size.width * 0.44,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.horizontal(
-                  left: Radius.circular(
-                    AppLayout.getHeight(context, 50),
-                  ),
-                ),
-                color: Colors.white,
-              ),
-              child: Center(child: Text(firstTab)),
-            ),
+//     return FittedBox(
+//       child: Container(
+//         padding: const EdgeInsets.all(3.5),
+//         decoration: BoxDecoration(
+//           borderRadius: BorderRadius.circular(AppLayout.getHeight(context, 50)),
+//           color: Colors.grey.shade300,
+//         ),
+//         child: Row(
+//           children: [
+//             //airline tickets
+//             Container(
+//               padding: EdgeInsets.symmetric(
+//                   vertical: AppLayout.getHeight(context, 7)),
+//               width: size.width * 0.44,
+//               decoration: BoxDecoration(
+//                 borderRadius: BorderRadius.horizontal(
+//                   left: Radius.circular(
+//                     AppLayout.getHeight(context, 50),
+//                   ),
+//                 ),
+//                 color: Colors.white,
+//               ),
+//               child: Center(child: Text(firstTab)),
+//             ),
 
-            //hotel tickets
-            Container(
-              padding: EdgeInsets.symmetric(
-                  vertical: AppLayout.getHeight(context, 7)),
-              width: size.width * 0.44,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.horizontal(
-                  right: Radius.circular(
-                    AppLayout.getHeight(context, 50),
-                  ),
-                ),
-                color: Colors.transparent,
-              ),
-              child: Center(
-                child: Text(secondTab),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+//             //hotel tickets
+//             Container(
+//               padding: EdgeInsets.symmetric(
+//                   vertical: AppLayout.getHeight(context, 7)),
+//               width: size.width * 0.44,
+//               decoration: BoxDecoration(
+//                 borderRadius: BorderRadius.horizontal(
+//                   right: Radius.circular(
+//                     AppLayout.getHeight(context, 50),
+//                   ),
+//                 ),
+//                 color: Colors.transparent,
+//               ),
+//               child: Center(
+//                 child: Text(secondTab),
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }

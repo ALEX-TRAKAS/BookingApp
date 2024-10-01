@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../routes/name_route.dart';
 import '../utils/AppStyles.dart';
 
 class AppDoubleTextWidget extends StatelessWidget {
@@ -17,7 +19,24 @@ class AppDoubleTextWidget extends StatelessWidget {
           style: Styles.headLineStyle2,
         ),
         InkWell(
-          onTap: () {},
+          onTap: () {
+            if (bigText == "Δημοφιλή εστιατόρια") {
+              context.pushNamed(
+                homeSearchNameRoute,
+                queryParameters: {
+                  'filterType': 'Δημοφιλή εστιατόρια',
+                },
+              );
+            }
+            if (bigText == "Πλησιέστερα") {
+              context.pushNamed(
+                homeSearchNameRoute,
+                queryParameters: {
+                  'filterType': 'Πλησιέστερα',
+                },
+              );
+            }
+          },
           child: Text(
             smallText,
             style: Styles.textStyle.copyWith(color: Styles.primaryColor),

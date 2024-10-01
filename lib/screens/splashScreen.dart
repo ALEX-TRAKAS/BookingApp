@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:bookingapp/routes/name_route.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,14 +13,18 @@ class splashScreen extends StatefulWidget {
 class _SplashScreenState extends State<splashScreen> {
   @override
   void initState() {
-    super.initState();
-    if (mounted) {
-      setState(() {
-        Timer(
-          const Duration(seconds: 3),
-          () => context.goNamed(authNameRoute),
-        );
-      });
+    if (kIsWeb) {
+      context.goNamed(authNameRoute);
+    } else {
+      super.initState();
+      if (mounted) {
+        setState(() {
+          Timer(
+            const Duration(seconds: 3),
+            () => context.goNamed(authNameRoute),
+          );
+        });
+      }
     }
   }
 

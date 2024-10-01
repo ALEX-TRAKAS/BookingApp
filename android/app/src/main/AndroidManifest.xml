@@ -3,9 +3,10 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="bookingapp"
+        android:label="ReserveEat"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:enableOnBackInvokedCallback="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -13,7 +14,6 @@
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
-            android:enableOnBackInvokedCallback="true"
             android:windowSoftInputMode="adjustResize">
             <!-- Specifies an Android theme to apply to this Activity as soon as
                  the Android process has started. This theme is visible to the user
@@ -36,7 +36,7 @@
             android:value="2" />
         <meta-data
               android:name="com.google.android.geo.API_KEY"
-              android:value="AIzaSyCu9bkobhdL6vM_y8_7WuV5SDH3Fi-i3_g" />    
+              android:value="AIzaSyBpNqbkIb8TBeAwvxq8hNfi7or5mdZslbk" />    
         <meta-data
               android:name="com.google.android.gms.version"
               android:value="@integer/google_play_services_version" />
