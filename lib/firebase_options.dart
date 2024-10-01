@@ -55,7 +55,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '500733475144',
     projectId: 'bookingapp-ff114',
     authDomain: 'bookingapp-ff114.firebaseapp.com',
-    databaseURL: 'https://bookingapp-ff114-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://bookingapp-ff114-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'bookingapp-ff114.appspot.com',
     measurementId: 'G-EY2NMK9BNK',
   );
@@ -65,7 +66,8 @@ class DefaultFirebaseOptions {
     appId: '1:500733475144:android:965e6c16f78cc231bc1b7d',
     messagingSenderId: '500733475144',
     projectId: 'bookingapp-ff114',
-    databaseURL: 'https://bookingapp-ff114-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://bookingapp-ff114-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'bookingapp-ff114.appspot.com',
   );
 }
