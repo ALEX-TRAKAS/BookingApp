@@ -22,10 +22,9 @@ class MyTextField extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 25),
         child: TextFormField(
-          // Changed TextField to TextFormField
           controller: controller,
           obscureText: obscureText,
-          validator: validator, // Use the validator here
+          validator: validator, 
           decoration: InputDecoration(
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
