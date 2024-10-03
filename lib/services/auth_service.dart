@@ -82,45 +82,6 @@ class Authentication {
     context.go(authRoute);
   }
 
-  // static Future<void> signOutFromGoogle(BuildContext context) async {
-  //   final GoogleSignIn googleSignIn = GoogleSignIn();
-
-  //   try {
-  //     if (!kIsWeb) {
-  //       await googleSignIn.signOut();
-  //     } else {
-  //       // For web, ensure proper initialization and sign out
-  //       await googleSignIn.disconnect();
-  //     }
-
-  //     await FirebaseAuth.instance.signOut();
-  //   } catch (e) {}
-
-  //   if (kIsWeb) {
-  //     context.go(authNameRoute);
-  //   } else {
-  //     context.go(loginRoute);
-  //   }
-  // }
-  // static Future<void> signOutFromGoogle(BuildContext context) async {
-  //   final GoogleSignIn googleSignIn = GoogleSignIn();
-  //   try {
-  //     if (!kIsWeb) {
-  //       await googleSignIn.signOut();
-  //     }
-  //     await FirebaseAuth.instance.signOut();
-  //   } catch (e) {
-  //     Authentication.customSnackBar(
-  //       content: 'Error signing out. Try again.',
-  //     );
-  //   }
-  //   if (kIsWeb) {
-  //     context.goNamed(webHomeScreenNameRoute);
-  //   } else {
-  //     context.go(loginRoute);
-  //   }
-  // }
-
   static Future<void> signOutFromGoogle(BuildContext context) async {
     final GoogleSignIn googleSignIn = GoogleSignIn(
       clientId: kIsWeb ? 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com' : null,
