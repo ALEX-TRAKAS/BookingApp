@@ -7,8 +7,7 @@ The project I developed was a cross-platform restaurant reservation application.
 * **Firebase Firestore:** For storing and managing data.
 * **Node.js:** Used only for the web version of the application to solve CORS issues, allowing secure API calls.
 * **Google Places API:** For searching and selecting locations.
-  
-[![Video Title](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://youtu.be/kb5dAylK38o)
+
 
 
 
